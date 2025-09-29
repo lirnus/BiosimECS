@@ -2,8 +2,8 @@
 
 namespace bs {
 	// world parameters
-	int gridsizeY = 30;
-	int gridsizeX = 30;
+	int gridsizeY = 10;
+	int gridsizeX = 10;
 	int numberOfGenes = 16;
 	int numberOfPixies = 200;
 	int numberOfGenerations = 2;
