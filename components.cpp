@@ -11,6 +11,11 @@ namespace bs {
 
 	ComponentStorage<BrainState> brainstate;
 
+	ComponentStorage<float> fitness;
+
+
+	ComponentStorage<Genome> genome;
+
 	ComponentStorage<std::vector<NeuronFunc>> topoOrder;
 
 	ComponentStorage<std::vector<std::vector<int>>> bwd_adjacency;

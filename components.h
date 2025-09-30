@@ -7,6 +7,7 @@
 #pragma once
 
 namespace bs {
+	static constexpr float VOID = FLT_MAX;
 
 	// components for pixies
 	struct Position { int yPos, xPos; };
@@ -20,12 +21,17 @@ namespace bs {
 	struct MoveUrge { uint8_t moveY, moveX; };
 	extern ComponentStorage<MoveUrge> move_urge;
 
-	struct BrainState { float outputs[NUM_NEURONS], lastStepOutputs[NUM_NEURONS]; };
+	struct BrainState { std::vector<float> outputs{ NUM_NEURONS, VOID }, lastStepOutputs{ NUM_NEURONS, 0.0 }; };
 	extern ComponentStorage<BrainState> brainstate;
+
+	extern ComponentStorage<float> fitness;
 
 
 
 	// components for genomes
+	struct Genome { std::vector<uint32_t> DNA; };
+	extern ComponentStorage<Genome> genome;
+
 	using NeuronFunc = void(*)(Entity e);
 	extern ComponentStorage<std::vector<NeuronFunc>> topoOrder;
 

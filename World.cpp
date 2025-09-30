@@ -19,17 +19,17 @@ namespace bs {
         return grid[r * gridsizeX + c]; // automatic conversion of row, col in 1D
     }
 
-    void World::setGridCell(int r, int c, uint32_t value) {
+    void World::setGridCell(int r, int c, int value) {
         if (r >= gridsizeY || c >= gridsizeX || r < 0 || c < 0) throw std::out_of_range("Index oor");
         grid[r * gridsizeX + c] = value;
     }
-    void World::setGridCell(std::vector<int> yxVec, uint32_t value) {
+    void World::setGridCell(std::vector<int> yxVec, int value) {
         int r = yxVec[0];
         int c = yxVec[1];
         if (r >= gridsizeY || c >= gridsizeX || r < 0 || c < 0) throw std::out_of_range("Index oor");
         grid[r * gridsizeX + c] = value;
     }
-    void World::setGridCell(Position& pos, uint32_t value) {
+    void World::setGridCell(Position& pos, int value) {
         int r = pos.yPos;
         int c = pos.xPos;
         if (r >= gridsizeY || c >= gridsizeX || r < 0 || c < 0) throw std::out_of_range("Index oor");

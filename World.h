@@ -9,20 +9,23 @@
 
 namespace bs {
 
-    static constexpr uint32_t EMPTY = UINT32_MAX - 1;
-    static constexpr uint32_t BARRIER = UINT32_MAX - 2;
-    static constexpr uint32_t FOOD = UINT32_MAX - 3;
+    static constexpr int EMPTY = UINT32_MAX; // int is signed - this value will wrap around and actually be -1
+    static constexpr int BARRIER = UINT32_MAX - 1;
+    static constexpr int FOOD = UINT32_MAX - 2;
 
     class World {
-        std::vector<uint32_t> grid;
+        std::vector<int> grid;
     public:
         World();
 
+        EntityManager pixie_em;
+        EntityManager braintemplates_em;
+
         int getGridCell(int r, int c);
         int getGridCell(std::vector<int>);
-        void setGridCell(int r, int c, uint32_t value);
-        void setGridCell(std::vector<int>, uint32_t value);
-        void setGridCell(Position&, uint32_t value);
+        void setGridCell(int r, int c, int value);
+        void setGridCell(std::vector<int>, int value);
+        void setGridCell(Position&, int value);
 
         void printGrid();
     };

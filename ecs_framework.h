@@ -25,6 +25,8 @@ namespace bs {
 	public:
 		ComponentStorage() {
 			entity_to_index.assign(numberOfPixies, INVALID); // set the size of entity_to_index to numPixies to prevent reallocation
+			entities.reserve(numberOfPixies);
+			components.reserve(numberOfPixies);
 		}
 
 		void add(Entity e, T comp) {
@@ -73,6 +75,12 @@ namespace bs {
 			for (size_t i = 0; i < n; ++i) {
 				f(entities[i], components[i]);
 			}
+		}
+
+		void clear_all() {// clear all entity components
+			components.clear();
+			entities.clear();
+			fill(entity_to_index.begin(), entity_to_index.end(), INVALID);
 		}
 
 		size_t size() const {

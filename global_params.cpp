@@ -2,10 +2,10 @@
 
 namespace bs {
 	// world parameters
-	int gridsizeY = 10;
-	int gridsizeX = 10;
+	int gridsizeY = 50;
+	int gridsizeX = 50;
 	int numberOfGenes = 16;
-	int numberOfPixies = 200;
+	int numberOfPixies = 2000;
 	int numberOfGenerations = 2;
 	int numberOfSimSteps = 40;
 	/*std::vector<std::string> selectionCriteria = { "killRightHalf" };
