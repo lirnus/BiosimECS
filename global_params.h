@@ -9,12 +9,19 @@ namespace bs {
 	// This file contains global variables that are intended to be accessible from everywhere in the code
 
 	// world parameters
-	extern int gridsizeY;
+	/*extern int gridsizeY;
 	extern int gridsizeX;
 	extern int numberOfGenes;
 	extern int numberOfPixies;
 	extern int numberOfGenerations;
-	extern int numberOfSimSteps;
+	extern int numberOfSimSteps;*/
+
+	static constexpr int gridsizeY = 3;
+	static constexpr int gridsizeX = 3;
+	static constexpr int numberOfGenes = 10;
+	static constexpr int numberOfPixies = 1;
+	static constexpr int numberOfGenerations = 3;
+	static constexpr int numberOfSimSteps = 40;
 	/*extern std::vector<std::string> selectionCriteria;
 	extern std::string EnvironmentKey;*/
 
@@ -29,7 +36,7 @@ namespace bs {
 
 	// pixie parameters
 	//extern float mutationRate;
-	//extern float weight_factor; //range of connection weight encoded by DNA. Range is {-weight_f..+weight_f}
+	static constexpr float weight_factor = 2; //range of connection weight encoded by DNA. Range is {-weight_f..+weight_f}
 
 	// analytics
 	//extern bool calc_diversity;

@@ -1,11 +1,12 @@
 #include "simulator_funcs.h"
+#include "Genome.h"
 
 #include <algorithm>
 #include <memory>
 #include <iostream>
 
 namespace bs {
-	void spawnPixie(std::unique_ptr<World> w) {
+	void spawnPixie(World* w) {
 		// create a new Pixie entity and place it on the grid
 		Entity newPixie = w->pixie_em.create();
 
@@ -16,24 +17,46 @@ namespace bs {
 			randY = randomengine->getRandomIntCustom(0, gridsizeY - 1);
 			if (w->getGridCell(randY, randX) == EMPTY) { break; }
 		}
-		Pos.add(newPixie, Position{ randY, randX });
-		w->setGridCell(Pos.get(newPixie), newPixie);
+		w->Pos.add(newPixie, Position{ randY, randX });
+		w->setGridCell(w->Pos.get(newPixie), newPixie);
 
-		uint8_t randR = randomengine->getRandomIntCustom(0, 255);
+		/*uint8_t randR = randomengine->getRandomIntCustom(0, 255);
 		uint8_t randG = randomengine->getRandomIntCustom(0, 255);
 		uint8_t randB = randomengine->getRandomIntCustom(0, 255);
-		Col.add(newPixie, Color{ randR, randG, randB });
+		w->Col.add(newPixie, Color{ randR, randG, randB });*/		// this comes when creating a genome
 
-		facing.add(newPixie, 0);
+		w->facing.add(newPixie, 0.0);
 
-		move_urge.add(newPixie, MoveUrge{ 0, 0 });
+		w->move_urge.add(newPixie, MoveUrge{ 0, 0 });
 
-		brainstate.add(newPixie, BrainState{}); // empty brain 
+		w->brainstate.add(newPixie, BrainState{}); // empty brain 
+
+		w->fitness.add(newPixie, 1.0);
+
+		// create a genome:
+		w->Genomes.add(newPixie, createGenome(w, newPixie));
 			
+	}
+	
+
+	void inheritPixie(World& newW, Entity genomeID) {
+
+	}
+	void eachSimStep(World*, int gen) {
+
+	}
+	void newGeneration(World* newW, const std::optional<ComponentStorage<Genome>>& genome) {
+
+	}
+	void newGeneration(World* newW, const ComponentStorage<Genome>& genome) {
+
+	}
+	void evaluateFitness(World* w) {
+
 	}
 
 
-	void simulateGenerations(const std::optional<ComponentStorage<Genome>>& startingMetagenome = std::nullopt) {
+	void simulateGenerations(const std::optional<ComponentStorage<Genome>>& startingMetagenome) {
 
 		// before all generations:
 
@@ -42,59 +65,56 @@ namespace bs {
 			std::cerr << "too many pixies for the grid!";
 		}
 
-		std::unique_ptr<World> oldWorld = nullptr; //empty world adress // we need either a dummy world or a placeholder adress
+		// Container for genomes for the next generation:
+		ComponentStorage<Genome> nextMetagenome;
+
+		//std::unique_ptr<World> oldWorld = nullptr; //empty world adress // we need either a dummy world or a placeholder adress
 		// for each generation:
 		for (int gen = 1; gen <= numberOfGenerations; gen++) {
 
 			std::cout << "generation " << gen << "\n";
 			//create new World
-			// pixie and brain Template EntityManagers are automatically created with the World
+			World newWorld; // on stack // pixie and brain Template EntityManagers are automatically created with the World
+			World* newWorld_ptr = &newWorld;
 			
-			std::unique_ptr<World> newWorld = std::make_unique<World>(); // smart pointers get deleted when they are out of scope/dangling
 			// set environment //
 
 			// if first world:
-			if (gen == 1 && oldWorld == nullptr) {
+			if (gen == 1) {
 				// spawn Pixies with new Genomes
-				newGeneration(newWorld, startingMetagenome);
+				newGeneration(newWorld_ptr, startingMetagenome);
 			}
 			// else if succeding world:
-			else if (oldWorld != nullptr) {
+			else {
 				// spawn new Pixies but inherit Genomes
-				newGeneration(newWorld, oldWorld);
+				newGeneration(newWorld_ptr, nextMetagenome);
 			}
+			nextMetagenome.clear_all();
 			
 			// simulate simSteps
 			for (int i = 0; i < numberOfSimSteps; i++) {
 
 				//generationAge = i;
-				eachSimStep(newWorld, gen);
+				eachSimStep(newWorld_ptr, gen);
 
-				if (fitnessUpdates == "every") {
-					evaluateFitness(newWorld);
-					//applySelectionCriteria(newWorld); // (only for soft selection criteria)
-				}
+				//if (fitnessUpdates == "every") {
+				//	evaluateFitness(newWorld);
+				//	//applySelectionCriteria(newWorld); // (only for soft selection criteria)
+				//}
 			}
 
-			evaluateFitness(newWorld);
+			evaluateFitness(newWorld_ptr);
 			//if (!chooseParentsByFitness) { // this means that pixies should be killed before choosing pixies to reproduce
 			//	applySelectionCriteria(newWorld);
 			//}
 			int fit_pixies = 0;
-			fitness.for_each([&](Entity e, float c) {if (c > 0) { fit_pixies++; }; });
+			newWorld_ptr->fitness.for_each([&](Entity e, float c) {if (c > 0) { fit_pixies++; }; });
 			if (fit_pixies == 0) {
 				std::cout << "total extinction!!\n";
 				break;
 			}
 			
-			oldWorld = std::move(newWorld);
-			// clear all the pixie component storages: Pos, Col, facing, move_urge, BrainState, fitness
-			Pos.clear_all();
-			Col.clear_all();
-			facing.clear_all();
-			move_urge.clear_all();
-			brainstate.clear_all();
-			// clear all the genome component storages: topoOrder, bwd_adjacency
+			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
 
 		}
 	}

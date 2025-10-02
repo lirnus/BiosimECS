@@ -8,20 +8,20 @@
 
 namespace bs {
 
-	void spawnPixie(std::unique_ptr<World>& w);
+	void spawnPixie(World* w);
 	void spawnPixie(World* w, Entity genomeID);
 	void spawnPixie(World* w, Entity genomeID, std::vector<uint8_t> new_rgb);
 
 	void inheritPixie(World& newW, Entity genomeID);
 
 
-	void eachSimStep(std::unique_ptr<World>&, int gen);
+	void eachSimStep(World*, int gen);
 
 	//void newGeneration();
-	void newGeneration(std::unique_ptr<World>& newW, const std::optional<ComponentStorage<Genome>>& genome); // for existing genomes
-	void newGeneration(std::unique_ptr<World>& newW, std::unique_ptr<World>& oldW); // for succeeding generenations
+	void newGeneration(World* newW, const std::optional<ComponentStorage<Genome>>& genome);
+	void newGeneration(World* newW, const ComponentStorage<Genome>& genome); // for succeeding generenations
 
-	void evaluateFitness(std::unique_ptr<World>& w);
+	void evaluateFitness(World* w);
 
 	void simulateGenerations(const std::optional<ComponentStorage<Genome>>& startingMetagenome = std::nullopt);
 }

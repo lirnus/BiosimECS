@@ -13,13 +13,27 @@ namespace bs {
     static constexpr int BARRIER = UINT32_MAX - 1;
     static constexpr int FOOD = UINT32_MAX - 2;
 
+    // structs for different components
+
+
     class World {
         std::vector<int> grid;
     public:
         World();
 
         EntityManager pixie_em;
+
+        ComponentStorage<Position> Pos;
+        ComponentStorage<Entity> Genomes; 
+        ComponentStorage<float> facing;
+        ComponentStorage<MoveUrge> move_urge;
+        ComponentStorage<BrainState> brainstate;
+        ComponentStorage<float> fitness;
+
+
         EntityManager braintemplates_em;
+
+        ComponentStorage<Genome> genome;
 
         int getGridCell(int r, int c);
         int getGridCell(std::vector<int>);
