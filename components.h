@@ -23,10 +23,11 @@ namespace bs {
 
 	using NeuronFunc = void(*)(World* w, Entity e);
 	// components for genomes
-	struct Genome { std::vector<uint32_t> DNA; 
+	struct Genome {
+					std::array<uint32_t, numberOfGenes> DNA;
 					Color col; 
 					std::vector<NeuronFunc> topoOrder;
-					std::vector<std::vector<int>> bwd_adjacency;
+					std::array<std::array<Adjacency, numberOfGenes>, num_neurons> bwd_adjacency;
 	};
 
 
