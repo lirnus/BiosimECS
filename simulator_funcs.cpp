@@ -1,5 +1,5 @@
 #include "simulator_funcs.h"
-#include "Genome.h"
+#include "Genome.h" //incl Neurons, World, ecs_framework -> global_params
 
 #include <algorithm>
 #include <memory>

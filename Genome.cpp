@@ -1,5 +1,6 @@
 #include "Genome.h"
-#include <array>
+#include "components.h"
+
 #include <cmath>
 #include <iostream>
 
@@ -8,13 +9,15 @@ namespace bs {
 	Entity createGenome(World* w, Entity p) {
 		// create new Genome entity
 		Entity newGenome = w->braintemplates_em.create();
+		w->genome.add(newGenome, {}); // zero-initialize a Genome to later add components
 
 		// generate DNA from scratch
-		std::array<uint32_t, numberOfGenes> genes = generateDNA();
+		//std::array<uint32_t, numberOfGenes> genes = generateDNA();
+		w->genome.get(newGenome).DNA = generateDNA();
 
 		// map DNA2NeuronTypes
 		// generate connection list
-		std::array<Connection, numberOfGenes> conn_list = mapDNA2Connections(genes);
+		std::array<Connection, numberOfGenes> conn_list = mapDNA2Connections(w->genome.get(newGenome).DNA);
 
 		// generate fwd_adjacency list
 		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> fwd_adjacency = generate_fwdAdj(conn_list);
@@ -23,13 +26,19 @@ namespace bs {
 		checkForLoops_DFS(fwd_adjacency, conn_list);
 
 		// generate bwd_adjacency list
+		//std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> bwd_adjacency = generate_bwdAdj(conn_list);
+		w->genome.get(newGenome).bwd_adjacency = generate_bwdAdj(conn_list);
 
 		// calculate topology
-		
-		// save genome to comp
-		w->genome.add(newGenome, {}); // either copy all the elements, or move() if already allocated on heap
+		//std::vector<NeuronFunc> topoOrder = calculate_topoOrder(bwd_adjacency);
+		calculate_topoOrder(w->genome.get(newGenome).bwd_adjacency, w->genome.get(newGenome).topoOrder);
 
-		//return Genome entity
+		// new random color for that genome
+		w->genome.get(newGenome).col.r = randomengine->getRandomIntCustom(0, 255);
+		w->genome.get(newGenome).col.b = randomengine->getRandomIntCustom(0, 255);
+		w->genome.get(newGenome).col.g = randomengine->getRandomIntCustom(0, 255);
+
+		// return Genome entity
 		return newGenome;
 	}
 
@@ -104,7 +113,7 @@ namespace bs {
 		return (x & mask) >> low;
 	}
 
-	std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> generate_fwdAdj(std::array<Connection, numberOfGenes>& conn_list) {
+	std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> generate_fwdAdj(const std::array<Connection, numberOfGenes>& conn_list) {
 
 		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> fwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
 																				   // this is done so that stack allocation is still possible
@@ -112,7 +121,7 @@ namespace bs {
 		std::array<int, NUM_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
 
 		// for each connenction in conn_list, add sink, weight to fwd_adj[src]
-		for (Connection& conn : conn_list) {
+		for (const Connection& conn : conn_list) {
 			if (conn.valid) {
 				int next_free_index = connection_tracker.at(conn.source)++;
 				fwd_adj.at(conn.source).at(next_free_index) = Adjacency{ true, conn.sink, conn.weight };
@@ -283,14 +292,14 @@ namespace bs {
 
 	}
 
-	std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> generate_bwdAdj(std::array<Connection, numberOfGenes>& conn_list) {
+	std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> generate_bwdAdj(const std::array<Connection, numberOfGenes>& conn_list) {
 		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> bwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
 		// this is done so that stack allocation is still possible
 
 		std::array<int, NUM_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
 
-		// for each connenction in conn_list, add source, weight to fwd_adj[snk]
-		for (Connection& conn : conn_list) {
+		// for each connenction in conn_list, add source, weight to bwd_adj[snk]
+		for (const Connection& conn : conn_list) {
 			if (conn.valid) {
 				int next_free_index = connection_tracker.at(conn.sink)++;
 				bwd_adj.at(conn.sink).at(next_free_index) = Adjacency{ true, conn.source, conn.weight };
@@ -298,6 +307,7 @@ namespace bs {
 		}
 
 		// ONLY FOR DEBUG ///////////////////////////
+		std::cout << "backwards:\n";
 		for (int idx = 0; idx < NUM_NEURONS; idx++) {
 			std::cout << "[" << idx << "] [";
 			for (Adjacency adj : bwd_adj.at(idx)) {
@@ -309,6 +319,95 @@ namespace bs {
 		/////////////////////////////////////////////
 
 		return bwd_adj;
+	}
+
+	void calculate_topoOrder(const std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj, std::vector<NeuronTypes>& topoOrder) {
+
+		/*
+		* Do a BFS (Breadth-First search) through the backwards adjacency list.
+		* To do this, step through bwd_adj, beginning at the action neurons. add every adjacency neighbour to a queue
+		* (that is in reality an array, to keep things on stack: numberOfGenes * 3 of buffer (max *2 should be necessary)). 
+		Go through the whole graph like this, and when encountering
+		* a neuron that already was visited, invalidate all previous occurrences, so that only one valid neuron of every type
+		* exists.
+		* In the last step, check if there really only are at max NUM_NEURONS valid neurons in the array. Then iterate through
+		* The array BACKWARDS and if a neruon is valid, push it to the topoOrder vector.
+		*/
+
+		std::array<NeuronTypes, numberOfGenes * 3> bfs_queue{};
+		std::array<bool, numberOfGenes * 3> track_validity{};
+
+		int next_free_index = 0;
+		int current_step = 0;
+
+		// start at every action neuron. Each neighbour in the adj list is added to a queue (array).
+		for (int root = neuronClasses.at(2); root < neuronClasses.at(3); root++) {
+
+			if (bwd_adj.at(root).at(0).valid) {
+				bfs_queue.at(next_free_index) = static_cast<NeuronTypes>(root);
+				track_validity.at(next_free_index) = true;
+				next_free_index++;
+
+
+				// The queue is continuously cleared. If a node with neighbours is found, its neighbours also get added to the queue.
+				while (true) {
+
+					// check if there are any valid connections. If no --> end of path
+					if (!bwd_adj.at(bfs_queue[current_step]).at(0).valid) {
+						break;
+					}
+
+					// else, add all neighbours to queue
+					for (const Adjacency& adj : bwd_adj.at(bfs_queue[current_step])) {
+						if (adj.valid) {
+
+							//check if the next neuron already was visited
+							for (size_t i = 0; i < next_free_index; i++) {
+								if (bfs_queue[i] == adj.neighbour) {
+									//if yes, "delete" it by setting its validity to false
+									track_validity[i] = false;
+								}
+							}
+
+							//add to queue
+							bfs_queue.at(next_free_index) = adj.neighbour;
+							track_validity.at(next_free_index) = true;
+							next_free_index++;
+						}
+					}
+					current_step++;
+				} //end of while true
+			}
+		} //end of for root
+		
+		//quick check
+		int sum = [track_validity]() { 
+			int sum_up = 0;
+			for (const bool i : track_validity) { if (i) sum_up++; }
+			return sum_up;
+			}();
+		assert(sum <= NUM_NEURONS);
+
+		//now step through the array in reverse order and push to topoOrder
+		for (int i = numberOfGenes * 3 - 1; i >= 0; i--) {
+			if (track_validity.at(i)) { // if still valid
+
+				topoOrder.push_back(bfs_queue.at(i));
+			}
+		}
+
+		// DEBUG //////////////
+		std::cout << "bfs array: {";
+		for (auto elem : bfs_queue) {
+			std::cout << static_cast<int>(elem) << ", ";
+		}
+		std::cout << "}\n";
+		std::cout << "topoOrder of Neurons: {";
+		for (auto elem : topoOrder) {
+			std::cout << static_cast<int>(elem) << ", ";
+		}
+		std::cout << "}\n";
+		////////////////////////
 	}
 
 

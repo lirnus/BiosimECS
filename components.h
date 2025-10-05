@@ -1,15 +1,33 @@
 #include <cstdint>
+#include <array>
 
-#include "global_params.h"
-#include "ecs_framework.h"
+#include "ecs_framework.h" // incl global_params
+//#include "Genome.h"
 
 #pragma once
 
 namespace bs {
-	static constexpr int num_neurons = 11; // THIS VALUE NEEDS TO BE THE SAME AS NUM_NEURONS IN Neurons.h, can't reference it here because of circular includes
+	//static constexpr int num_neurons = 11; // THIS VALUE NEEDS TO BE THE SAME AS NUM_NEURONS IN Neurons.h, can't reference it here because of circular includes
 	static constexpr float VOID = FLT_MAX;
 
-	class World;
+	// enumerator representing different Neurons.
+	// Has to be sorted: sensors, internals, actions
+	enum NeuronTypes : uint8_t {
+		sX_POS, // 0U
+		sY_POS,
+		sPOP_DENSITY_FWD,
+		sAGE,
+		iINT_1, // 4U
+		iINT_2,
+		iINT_3,
+		aMOVE_W,	// 7U
+		aMOVE_E,
+		aMOVE_N,
+		aMOVE_S,
+		NUM_NEURONS // 11U
+	};
+
+	//class World;
 
 	// components for pixies
 	struct Position { int yPos, xPos; };
@@ -18,19 +36,19 @@ namespace bs {
 
 	struct MoveUrge { uint8_t moveY, moveX; };
 
-	struct BrainState { std::vector<float> outputs{ num_neurons, VOID }, lastStepOutputs{ num_neurons, 0.0 }; };
-
-
-	using NeuronFunc = void(*)(World* w, Entity e);
-	// components for genomes
-	struct Genome {
-					std::array<uint32_t, numberOfGenes> DNA;
-					Color col; 
-					std::vector<NeuronFunc> topoOrder;
-					std::array<std::array<Adjacency, numberOfGenes>, num_neurons> bwd_adjacency;
-	};
-
-
+	struct BrainState { std::vector<float> outputs{ NUM_NEURONS, VOID }, lastStepOutputs{ NUM_NEURONS, 0.0 }; };
 	
 
+	struct Connection { bool valid = false;  NeuronTypes source; NeuronTypes sink; float weight; }; //zero-initialized as
+	
+	struct Adjacency { bool valid = false;  NeuronTypes neighbour{}; float weight{}; }; //zero-initialized as { false, NeuronTypes{0}, 0.0f } { false, NeuronTypes{0}, NeuronTypes{0}, 0.0f }
+
+	struct Genome {
+		std::array<uint32_t, numberOfGenes> DNA;
+		Color col;
+		std::vector<NeuronTypes> topoOrder; // i could reserve NUM_NEURONS
+		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> bwd_adjacency;
+	};
+
+	
 }

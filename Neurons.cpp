@@ -1,6 +1,6 @@
 #include "Neurons.h"
 #include "World.h"
-#include "components.h"
+//#include "components.h"
 #include <cassert>
 
 
@@ -9,7 +9,8 @@ namespace bs {
 	// lookup table for Neuron functions
 	const std::vector<int> neuronClasses = { 0, 4, 7, 11 };
 
-	//using NeuronFunc = void(*)(World* w, Entity e);
+
+	using NeuronFunc = void(*)(World* w, Entity e);
 	std::vector<NeuronFunc> funcTable(NUM_NEURONS);
 
 	void initFuncTable() {

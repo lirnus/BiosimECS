@@ -1,8 +1,7 @@
 #include <vector>
 #include <cstdint>
 
-#include "global_params.h"
-#include "components.h"
+#include "components.h" // incl ecs_framework, global_params
 
 #pragma once
 
