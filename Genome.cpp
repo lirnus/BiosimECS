@@ -345,36 +345,51 @@ namespace bs {
 
 			if (bwd_adj.at(root).at(0).valid) {
 				bfs_queue.at(next_free_index) = static_cast<NeuronTypes>(root);
+				std::cout << "root: " << static_cast<int>(bfs_queue.at(next_free_index)) << "\n";
 				track_validity.at(next_free_index) = true;
 				next_free_index++;
-
 
 				// The queue is continuously cleared. If a node with neighbours is found, its neighbours also get added to the queue.
 				while (true) {
 
-					// check if there are any valid connections. If no --> end of path
-					if (!bwd_adj.at(bfs_queue[current_step]).at(0).valid) {
+					// DEBUG /////
+					std::cout << "current queue: {";
+					for (int m = 0; m < next_free_index; m++) { std::cout << static_cast<int>(bfs_queue[m]) << ", "; }
+					std::cout << "}\n";
+
+					// check if currentStep has catched up with nextFreeIndex. if yes, jump to next branch
+					if (current_step == next_free_index) {
+						std::cout << "end of queue, jump to next root\n";
 						break;
 					}
 
 					// else, add all neighbours to queue
 					for (const Adjacency& adj : bwd_adj.at(bfs_queue[current_step])) {
 						if (adj.valid) {
+							
+							//if selfInput, skip this neuron (don't add it to the queue)
+							if (bfs_queue[current_step] == adj.neighbour) {
+								std::cout << "SELFINPUT"<< static_cast<int>(bfs_queue[current_step]) << static_cast<int>(adj.neighbour) << "\n";
+								continue;
+							}
 
+							std::cout << "neighbour: " << static_cast<int>(adj.neighbour) << "\n";
 							//check if the next neuron already was visited
 							for (size_t i = 0; i < next_free_index; i++) {
 								if (bfs_queue[i] == adj.neighbour) {
 									//if yes, "delete" it by setting its validity to false
 									track_validity[i] = false;
+									std::cout << "invalidated at position " << i << "\n";
 								}
 							}
 
-							//add to queue
+							//add to queue (if not a selfInput)
 							bfs_queue.at(next_free_index) = adj.neighbour;
 							track_validity.at(next_free_index) = true;
 							next_free_index++;
 						}
 					}
+					std::cout << "current step: " << current_step << "\n";
 					current_step++;
 				} //end of while true
 			}
