@@ -16,10 +16,10 @@ namespace bs {
 	extern int numberOfGenerations;
 	extern int numberOfSimSteps;*/
 
-	static constexpr int gridsizeY = 3;
-	static constexpr int gridsizeX = 3;
+	static constexpr int gridsizeY = 100;
+	static constexpr int gridsizeX = 100;
 	static constexpr int numberOfGenes = 10;
-	static constexpr int numberOfPixies = 1;
+	static constexpr int numberOfPixies = 1000;
 	static constexpr int numberOfGenerations = 3;
 	static constexpr int numberOfSimSteps = 40;
 	/*extern std::vector<std::string> selectionCriteria;

@@ -96,11 +96,11 @@ namespace bs {
 			conn_list.at(i) = conn;
 		}
 		// ONLY FOR DEBUG ///////////////////////////
-		for (auto adj : conn_list) {
+		/*for (auto adj : conn_list) {
 			std::cout << static_cast<int>(adj.source) << "->" 
-				<< static_cast<int>(adj.sink) << "{" << adj.weight << "}" << ", ";
+				<< static_cast<int>(adj.sink) << "{" << adj.weight << "}." << adj.valid << ", ";
 		}
-		std::cout << "\n";
+		std::cout << "\n";*/
 		/////////////////////////////////////////////
 
 
@@ -123,20 +123,32 @@ namespace bs {
 		// for each connenction in conn_list, add sink, weight to fwd_adj[src]
 		for (const Connection& conn : conn_list) {
 			if (conn.valid) {
-				int next_free_index = connection_tracker.at(conn.source)++;
-				fwd_adj.at(conn.source).at(next_free_index) = Adjacency{ true, conn.sink, conn.weight };
+
+				// check if that connection already exists. if yes, just add to the weight factor
+				bool multiconnect = false;
+				for (Adjacency& adj : fwd_adj.at(conn.source)) {
+					if (conn.sink == adj.neighbour) {
+						adj.weight += conn.weight;
+						multiconnect = true;
+					}
+				}
+
+				if (!multiconnect) {
+					int next_free_index = connection_tracker.at(conn.source)++;
+					fwd_adj.at(conn.source).at(next_free_index) = Adjacency{ true, conn.sink, conn.weight };
+				}
 			}
 		}
 
 		// ONLY FOR DEBUG ///////////////////////////
-		for (int idx = 0; idx < NUM_NEURONS; idx++) {
+		/*for (int idx = 0; idx < NUM_NEURONS; idx++) {
 			std::cout << "[" << idx << "] [";
 			for (Adjacency adj : fwd_adj.at(idx)) {
 				std::cout << static_cast<int>(adj.neighbour) << "/";
 				std::cout << static_cast<int>(adj.valid) << ", ";
 			}
 			std::cout << "]\n";
-		}
+		}*/
 		/////////////////////////////////////////////
 
 		return fwd_adj;
@@ -150,6 +162,14 @@ namespace bs {
 
 		//bool dfs_unsuccessfull = true;
 
+		// small lambda to check if a neuron has any valid connections:
+		auto isvalid = [fwd_adj](int idx) {
+			int sum = 0;
+			for (Adjacency adj : fwd_adj.at(idx)) {
+				sum += adj.valid;
+			}
+			return sum > 0;
+		};
 
 		/*
 		DFS = Depth-First Search. Goes through the graph of connections by following a single path until its end, before backtracking
@@ -165,8 +185,10 @@ namespace bs {
 		
 		// run through the arrays in adj_list and only consider those with valid = true.
 		// Only start from sensor neurons! (see neuronClasses[1])
+restart:
 		for (int root = 0; root < neuronClasses.at(1); root++) {
 
+			//std::cout << "root: " << root << "\n";
 			if (visiting_status[root] == 2) continue; //this neuron is already fully visited
 
 			std::array<int, numberOfGenes> path_tracker{}; // tracks the Neuron indices of the currently visited path
@@ -175,24 +197,20 @@ namespace bs {
 			std::array<int, NUM_NEURONS> branch_tracker{}; // sparse set to track how many adjacencies have already been visited
 			size_t currentBranchDepth{};
 
+
 			path_tracker[pathDepth++] = root; // start at sensor neuron i
-			std::cout << "start root " << root << "\n"; //DEBUG
+			visiting_status[root] = 1;
 
 			while (pathDepth > 0) {
 				size_t top = pathDepth - 1;
 				int currentNode = path_tracker[top]; 
 					
-				// DEBUG print
-				std::cout << "path (depth=" << pathDepth << "): ";
-				for (size_t i = 0; i < pathDepth; ++i) std::cout << path_tracker[i] << (i + 1 < pathDepth ? "->" : "");
-				std::cout << "\n";
-
 				// get next branch index for currentNode
 				int& branchIdx = branch_tracker[currentNode];
 
-				if (static_cast<size_t>(branchIdx) >= numberOfGenes) {
+				if (static_cast<size_t>(branchIdx) >= numberOfGenes) { // a neuron is only finished if all branch indices have been checked
+
 					// no more adjacencies -> finish this node
-					std::cout << "end of adjacency list reached\n";
 					visiting_status[currentNode] = 2;
 					--pathDepth; // pop
 					continue;
@@ -203,32 +221,27 @@ namespace bs {
 				branchIdx++;
 
 				// check before if the connection to the neighbour is valid
-				if (!adj.valid) { // if false, current node has no more connections
-					
-					visiting_status.at(currentNode) = 2;
-					--pathDepth;
+				if (!adj.valid) { // if false, go to next branch index
 					continue;
 				}
 
 				// skip selfInput Connections - they don't count as loops but also don't lead to another neuron
 				if (currentNode == adj.neighbour) { 
-					std::cout << "selfInput\n";
+					//std::cout << "selfInput\n";
 					continue; 
 				}
 
 				// check visiting status of neighbour
 				if (visiting_status[adj.neighbour] == 1) { // cycle closed
-					std::cout << "LOOP detected: " << currentNode << "->" << static_cast<int>(adj.neighbour) << "\n";
+					//std::cout << "LOOP detected: " << currentNode << "->" << static_cast<int>(adj.neighbour) << "\n";
 
 					// invalidate/delete connection
-					//adj.valid = false;
 					delete_connection(fwd_adj, conn_list, currentNode, adj.neighbour);
 
-					visiting_status.at(currentNode) = 2;
-					//--pathDepth; // go back one neuron
-					for (int node : path_tracker) { visiting_status[node] = 0; } // set all visiting neurons to 0
-					root--; // do the same iteration again
-					continue;
+					visiting_status.fill(0);
+					
+					// RESTART the whole algorithm
+					goto restart;
 				}
 				else if (visiting_status[adj.neighbour] == 0) { // currently unvisited neighbour
 					visiting_status[adj.neighbour] = 1;
@@ -237,10 +250,10 @@ namespace bs {
 						path_tracker[pathDepth++] = adj.neighbour;
 
 						// check one step ahead if the neighbour has any connections itself and if its NOT an action neuron
-						if (!fwd_adj.at(adj.neighbour).at(0).valid &&
+						if (isvalid(adj.neighbour) &&
 							adj.neighbour < neuronClasses.at(2)) {// dead end
 
-							std::cout << "DEAD END: " << currentNode << "->" << static_cast<int>(adj.neighbour) << "\n";
+							//std::cout << "DEAD END: " << currentNode << "->" << static_cast<int>(adj.neighbour) << "\n";
 
 							// invalidate/delete connection
 							delete_connection(fwd_adj, conn_list, currentNode, adj.neighbour);
@@ -252,24 +265,19 @@ namespace bs {
 					continue;
 				}
 				//else visiting status 2 (already visited). Nothing to do
-				std::cout << "already visited " << static_cast<int>(adj.neighbour) << "\n";
 				continue;
+
 			} // end while pathDepth > 0
+
 		} // end for roots
 
-		//DEBUG
-		std::cout << "visiting status: {";
-		for (auto elem : visiting_status) { std::cout << elem << ","; }
-		std::cout << "}\n";
-
-		std::cout << "checking for unrooted\n"; //DEBUG
+		//std::cout << "checking for unrooted\n"; //DEBUG
 		// when all sensor neurons are 2, check if there are still unvisited neurons with a non-empty adjacency list.
 		for (int i = neuronClasses.at(1); i < neuronClasses.at(3); i++) {// also check action neurons to be sure 
 			for (int j = 0; j < numberOfGenes; j++) {
 				if (visiting_status.at(i) == 0 && fwd_adj.at(i).at(j).valid) {// if so, these are unrooted internals linking up to internals/actions which will never fire.
-					std::cout << "unrooted internal " << i << "->" << static_cast<int>(fwd_adj.at(i).at(j).neighbour) << "\n"; //DEBUG
+
 					// remove their connections in fwd_adj AND in conn_list
-					//fwd_adj.at(i).at(j).valid = false;
 					delete_connection(fwd_adj, conn_list, i, fwd_adj.at(i).at(j).neighbour);
 
 					if (i > neuronClasses.at(2)) { // if its an action neuron with a connection, something went terribly wrong
@@ -280,14 +288,24 @@ namespace bs {
 		}
 
 		// ONLY FOR DEBUG ///////////////////////////
-		for (int idx = 0; idx < NUM_NEURONS; idx++) {
+		/*std::cout << "visiting status: {";
+		for (auto elem : visiting_status) { std::cout << elem << ","; }
+		std::cout << "}\n";*/
+
+		/*for (int idx = 0; idx < NUM_NEURONS; idx++) {
 			std::cout << "[" << idx << "] [";
 			for (Adjacency adj : fwd_adj.at(idx)) {
 				std::cout << static_cast<int>(adj.neighbour) << "/";
 				std::cout << static_cast<int>(adj.valid) << ", ";
 			}
 			std::cout << "]\n";
+		}*/
+
+		/*for (auto adj : conn_list) {
+			std::cout << static_cast<int>(adj.source) << "->"
+				<< static_cast<int>(adj.sink) << "{" << adj.weight << "}." << adj.valid << ", ";
 		}
+		std::cout << "\n";*/
 		/////////////////////////////////////////////
 
 	}
@@ -301,13 +319,25 @@ namespace bs {
 		// for each connenction in conn_list, add source, weight to bwd_adj[snk]
 		for (const Connection& conn : conn_list) {
 			if (conn.valid) {
-				int next_free_index = connection_tracker.at(conn.sink)++;
-				bwd_adj.at(conn.sink).at(next_free_index) = Adjacency{ true, conn.source, conn.weight };
+				// check if that connection already exists. if yes, just add to the weight factor
+				bool multiconnect = false;
+				for (Adjacency& adj : bwd_adj.at(conn.sink)) {
+					if (adj.valid && conn.source == adj.neighbour) {
+						adj.weight += conn.weight;
+						multiconnect = true;
+						//std::cout << "MULTICONNECT PREVENTED: " << static_cast<int>(conn.source) << static_cast<int>(conn.sink) <<"\n";
+					}
+				}
+
+				if (!multiconnect) {
+					int next_free_index = connection_tracker.at(conn.sink)++;
+					bwd_adj.at(conn.sink).at(next_free_index) = Adjacency{ true, conn.source, conn.weight };
+				}
 			}
 		}
 
 		// ONLY FOR DEBUG ///////////////////////////
-		std::cout << "backwards:\n";
+		/*std::cout << "backwards:\n";
 		for (int idx = 0; idx < NUM_NEURONS; idx++) {
 			std::cout << "[" << idx << "] [";
 			for (Adjacency adj : bwd_adj.at(idx)) {
@@ -315,7 +345,7 @@ namespace bs {
 				std::cout << static_cast<int>(adj.valid) << ", ";
 			}
 			std::cout << "]\n";
-		}
+		}*/
 		/////////////////////////////////////////////
 
 		return bwd_adj;
@@ -345,7 +375,7 @@ namespace bs {
 
 			if (bwd_adj.at(root).at(0).valid) {
 				bfs_queue.at(next_free_index) = static_cast<NeuronTypes>(root);
-				std::cout << "root: " << static_cast<int>(bfs_queue.at(next_free_index)) << "\n";
+				//std::cout << "root: " << static_cast<int>(bfs_queue.at(next_free_index)) << "\n";
 				track_validity.at(next_free_index) = true;
 				next_free_index++;
 
@@ -353,13 +383,13 @@ namespace bs {
 				while (true) {
 
 					// DEBUG /////
-					std::cout << "current queue: {";
-					for (int m = 0; m < next_free_index; m++) { std::cout << static_cast<int>(bfs_queue[m]) << ", "; }
-					std::cout << "}\n";
+					//std::cout << "current queue: {";
+					//for (int m = 0; m < next_free_index; m++) { std::cout << static_cast<int>(bfs_queue[m]) << ", "; }
+					//std::cout << "}\n";
 
 					// check if currentStep has catched up with nextFreeIndex. if yes, jump to next branch
 					if (current_step == next_free_index) {
-						std::cout << "end of queue, jump to next root\n";
+						//std::cout << "end of queue, jump to next root\n";
 						break;
 					}
 
@@ -369,27 +399,28 @@ namespace bs {
 							
 							//if selfInput, skip this neuron (don't add it to the queue)
 							if (bfs_queue[current_step] == adj.neighbour) {
-								std::cout << "SELFINPUT"<< static_cast<int>(bfs_queue[current_step]) << static_cast<int>(adj.neighbour) << "\n";
+								//std::cout << "SELFINPUT"<< static_cast<int>(bfs_queue[current_step]) << static_cast<int>(adj.neighbour) << "\n";
 								continue;
 							}
 
-							std::cout << "neighbour: " << static_cast<int>(adj.neighbour) << "\n";
+							//std::cout << "neighbour: " << static_cast<int>(adj.neighbour) << "\n";
 							//check if the next neuron already was visited
 							for (size_t i = 0; i < next_free_index; i++) {
 								if (bfs_queue[i] == adj.neighbour) {
 									//if yes, "delete" it by setting its validity to false
 									track_validity[i] = false;
-									std::cout << "invalidated at position " << i << "\n";
+									//std::cout << "invalidated at position " << i << "\n";
 								}
 							}
 
 							//add to queue (if not a selfInput)
+							//std::cout << static_cast<int>(adj.neighbour) << " at " << next_free_index << "\n";
 							bfs_queue.at(next_free_index) = adj.neighbour;
 							track_validity.at(next_free_index) = true;
 							next_free_index++;
 						}
 					}
-					std::cout << "current step: " << current_step << "\n";
+					//std::cout << "current step: " << current_step << "\n";
 					current_step++;
 				} //end of while true
 			}
@@ -412,16 +443,16 @@ namespace bs {
 		}
 
 		// DEBUG //////////////
-		std::cout << "bfs array: {";
+		/*std::cout << "bfs array: {";
 		for (auto elem : bfs_queue) {
 			std::cout << static_cast<int>(elem) << ", ";
 		}
-		std::cout << "}\n";
-		std::cout << "topoOrder of Neurons: {";
+		std::cout << "}\n";*/
+		/*std::cout << "topoOrder of Neurons: {";
 		for (auto elem : topoOrder) {
 			std::cout << static_cast<int>(elem) << ", ";
 		}
-		std::cout << "}\n";
+		std::cout << "}\n";*/
 		////////////////////////
 	}
 
@@ -431,8 +462,7 @@ namespace bs {
 			if (conn.source == source) {
 				if (conn.sink == sink) {
 					conn.valid = false;
-					std::cout << "deleted connection " << static_cast<int>(source) << "->" << static_cast<int>(sink) << "\n"; //DEBUG
-					break;
+					//std::cout << "deleted connection " << static_cast<int>(source) << "->" << static_cast<int>(sink) << "\n"; //DEBUG
 				}
 			}
 		}
@@ -440,8 +470,8 @@ namespace bs {
 		for (Adjacency& snk : fwd_adj.at(source)) {
 			if (snk.neighbour == sink) {
 				snk.valid = false;
-				std::cout << "set [" << static_cast<int>(source) << "]->" 
-					<< static_cast<int>(snk.neighbour) << "." << static_cast<int>(snk.valid) << " invalid" << "\n"; //DEBUG
+				//std::cout << "set [" << static_cast<int>(source) << "]->" 
+				//	<< static_cast<int>(snk.neighbour) << "." << static_cast<int>(snk.valid) << " invalid" << "\n"; //DEBUG
 			}
 		}
 	}
