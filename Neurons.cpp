@@ -2,6 +2,7 @@
 #include "World.h"
 //#include "components.h"
 #include <cassert>
+#include <iostream>
 
 
 namespace bs {
@@ -46,12 +47,22 @@ namespace bs {
 		World* w, 
 		Entity p
 	) {
+		// debug
+		//std::cout << static_cast<int>(neuron) << "\n";
+
 		float input_sum = 0.0;
 		for (Adjacency adj : bwd_adj.at(neuron)) {
 			if (adj.valid) { // add up all the outputs from neighbouring sources
-				// maybe consider a check if the value actually is set (if topology is correct, this should be the case)
-				if (w->brainstate.get(p).outputs.at(adj.neighbour) == VOID) { throw std::invalid_argument("VOID passed as input"); } // This can be cut for performance enhancement
-				input_sum += w->brainstate.get(p).outputs.at(adj.neighbour);
+				// if selfInput, get value from last round
+				if (adj.neighbour == neuron) {
+					input_sum += w->brainstate.get(p).lastStepOutputs.at(adj.neighbour);
+				}
+				else {
+					// maybe consider a check if the value actually is set (if topology is correct, this should be the case)
+					if (w->brainstate.get(p).outputs.at(adj.neighbour) == VOID) { throw std::invalid_argument("VOID passed as input"); } // This can be cut for performance enhancement
+					input_sum += w->brainstate.get(p).outputs.at(adj.neighbour);
+				}
+				
 			}
 		}
 
@@ -78,6 +89,20 @@ namespace bs {
 		std::vector<NeuronTypes>& topoOrder = w->genome.get(w->PixieGenomes.get(p)).topoOrder;
 		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj = w->genome.get(w->PixieGenomes.get(p)).bwd_adjacency;
 		
+		// DEBUG: ////////////////
+		/*std::cout << "topoOrder: {";
+		for (auto& i : topoOrder) { std::cout << static_cast<int>(i) << ", "; }
+		std::cout << "}\nbwd_adj:\n";
+		for (int idx = 0; idx < NUM_NEURONS; idx++) {
+			std::cout << "[" << idx << "] [";
+			for (Adjacency adj : bwd_adj.at(idx)) {
+				std::cout << static_cast<int>(adj.neighbour) << "/";
+				std::cout << static_cast<int>(adj.valid) << ", ";
+			}
+			std::cout << "]\n";
+		}*/
+		//////////////////////////
+
 		for (auto& neuron : topoOrder) {
 			// for each, check which neuronClass the index belongs to
 			
@@ -109,7 +134,7 @@ namespace bs {
 		int x_pos = w->Pos.get(p).xPos;
 
 		// divide it by the total x-size of the grid
-		return static_cast<float>(gridsizeX) / x_pos;
+		return x_pos / static_cast<float>(gridsizeX);
 
 	}
 
@@ -119,7 +144,7 @@ namespace bs {
 		int y_pos = w->Pos.get(p).yPos;
 
 		// divide it by the total x-size of the grid
-		return static_cast<float>(gridsizeX) / y_pos;
+		return y_pos / static_cast<float>(gridsizeX);
 	}
 
 	float popDensityFwd_neuronfunc(World* w, Entity p) {

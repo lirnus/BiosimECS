@@ -39,7 +39,7 @@ namespace bs {
 
 	struct Color { uint8_t r, g, b; };
 
-	struct MoveUrge { uint8_t moveY, moveX; };
+	struct MoveUrge { int8_t moveY, moveX; };
 
 	struct BrainState { 
 		BrainState() {

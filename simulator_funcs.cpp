@@ -158,6 +158,7 @@ namespace bs {
 			nextMetagenome.clear();
 			
 			// simulate simSteps
+			newWorld_ptr->printGrid();
 			for (int i = 0; i < numberOfSimSteps; i++) {
 
 				generationAge = i;
@@ -168,6 +169,7 @@ namespace bs {
 				//	//applySelectionCriteria(newWorld); // (only for soft selection criteria)
 				//}
 			}
+			newWorld_ptr->printGrid();
 
 			evaluateFitness(newWorld_ptr);
 			//if (!chooseParentsByFitness) { // this means that pixies should be killed before choosing pixies to reproduce

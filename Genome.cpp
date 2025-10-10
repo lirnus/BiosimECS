@@ -71,19 +71,22 @@ namespace bs {
 
 		// first check if there already is a braintemplate Entity with the same DNA. if yes, skip the initialization
 		Entity clone = checkForClone(w, old_gnm.DNA);
-		if (clone != INVALID) { return clone; }
+		if (clone != INVALID) { std::cout << "pixie " << p << " inherited a IDENTICAL genome\n"; return clone; }
 
 		// else create a new Entity
 		if (neuron_mut) {
 			// new topology
+			std::cout << "pixie " << p << " inherited a MISSENSE mutated genome\n";
 			return inheritGenome_Missense(w, p, possibly_mutated_DNA, old_gnm);
 		}
 		else if (weight_mut) {
 			// inherit genome with modifed bwd_adj
+			std::cout << "pixie " << p << " inherited a WEIGHT mutated genome\n";
 			return inheritGenome_Weight(w, p, possibly_mutated_DNA, old_gnm);
 		}
 		else {
 			// inherit whole genome with (new) DNA
+			std::cout << "pixie " << p << " inherited a SILENTLY mutated or UNMUTATED genome\n";
 			return inheritGenome_Silent(w, p, possibly_mutated_DNA, old_gnm);
 		}
 	}
@@ -161,9 +164,9 @@ namespace bs {
 	}
 
 	std::array<uint32_t, numberOfGenes> mutateDNA(const Genome& gnome) {
-		std::array<uint32_t, numberOfGenes> possiblyMutatedDNA;
+		std::array<uint32_t, numberOfGenes> possiblyMutatedDNA{};
 
-		for (int n = 0; n > numberOfGenes; n++) {
+		for (int n = 0; n < numberOfGenes; n++) {
 			uint32_t dna_copy = gnome.DNA.at(n);
 			for (int i = 0; i < 32; i++) {
 				if (randomengine->getRandom01() < mutationRate) { dna_copy ^= (1u << i); } // bit-masking and NOT-operator
