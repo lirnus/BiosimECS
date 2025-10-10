@@ -15,10 +15,19 @@ namespace bs {
 	//struct Connection { bool valid = false;  NeuronTypes source; NeuronTypes sink; float weight; }; //zero-initialized as
 	//struct Adjacency { bool valid = false;  NeuronTypes neighbour{}; float weight{}; }; //zero-initialized as { false, NeuronTypes{0}, 0.0f } { false, NeuronTypes{0}, NeuronTypes{0}, 0.0f }
 
+	std::array<uint32_t, numberOfGenes> mutateDNA(const Genome& gnome);
+	Color generateSimilarColor(const Color old_c, float factor);
+	Entity inheritGenome(World* w, Entity p, const Genome& old_gnm);
+	Entity inheritGenome_Missense(World* w, Entity p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm);
+	Entity inheritGenome_Weight(World* w, Entity p, std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm);
+	Entity inheritGenome_Silent(World* w, Entity p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm);
 
 	std::array<uint32_t, numberOfGenes> generateDNA();
 
+	Entity checkForClone(World* w, std::array<uint32_t, numberOfGenes> dna);
+
 	std::array<Connection, numberOfGenes> mapDNA2Connections(std::array<uint32_t, numberOfGenes>&  genes);
+	Connection mapDNA2Connection_single(const uint32_t& gene);
 
 	uint32_t extractBits(uint32_t x, int low, int high);
 

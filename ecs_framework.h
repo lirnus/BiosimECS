@@ -69,12 +69,20 @@ namespace bs {
 			return components[entity_to_index[e]];
 		}
 
-		template<typename Funk>
-		void for_each(Funk f) {
+		const std::vector<Entity> get_entities() const {
+			return entities;
+		}
+
+		template<typename Func>
+		void for_each(Func f) {
 			const size_t n = components.size();
 			for (size_t i = 0; i < n; ++i) {
 				f(entities[i], components[i]);
 			}
+		}
+
+		Entity random_entity() {
+			return entities.at(randomengine->getRandomIntCustom(0, size()-1));
 		}
 
 		void clear_all() {// clear all entity components
@@ -86,10 +94,10 @@ namespace bs {
 		size_t size() const {
 			return components.size();
 		}
-
+		
 	private:
-		std::vector<T> components;
 		std::vector<Entity> entities;
+		std::vector<T> components;
 		std::vector<Entity> entity_to_index;
 	};
 }

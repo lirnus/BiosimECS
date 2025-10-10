@@ -10,19 +10,21 @@
 namespace bs {
 
 	void spawnPixie(World* w);
-	void spawnPixie(World* w, Entity genomeID);
-	void spawnPixie(World* w, Entity genomeID, std::vector<uint8_t> new_rgb);
 
-	void inheritPixie(World& newW, Entity genomeID);
+	void inheritPixie(World* newW, const Genome oldGenome);
+	
+
 
 
 	void eachSimStep(World*, int gen);
 
 	//void newGeneration();
-	void newGeneration(World* newW, const std::optional<ComponentStorage<Genome>>& genome);
-	void newGeneration(World* newW, const ComponentStorage<Genome>& genome); // for succeeding generenations
+	void newGeneration(World* newW);
+	void newGeneration(World* newW, const std::vector<Genome>& genome); // for succeeding generenations
+	std::vector<Genome> select(World*);
 
 	void evaluateFitness(World* w);
 
-	void simulateGenerations(const std::optional<ComponentStorage<Genome>>& startingMetagenome = std::nullopt);
+	void simulateGenerations();
+	void simulateGenerations(const std::vector<Genome>& startingMetagenome);
 }

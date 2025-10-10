@@ -44,9 +44,13 @@ namespace bs {
 	struct Adjacency { bool valid = false;  NeuronTypes neighbour{}; float weight{}; }; //zero-initialized as { false, NeuronTypes{0}, 0.0f } { false, NeuronTypes{0}, NeuronTypes{0}, 0.0f }
 
 	struct Genome {
+		Genome() {
+			topoOrder.reserve(NUM_NEURONS);
+		}
+
 		std::array<uint32_t, numberOfGenes> DNA;
 		Color col;
-		std::vector<NeuronTypes> topoOrder; // i could reserve NUM_NEURONS
+		std::vector<NeuronTypes> topoOrder; // maybe it would be better to store NeuronFunc directly (avoid overhead lookup)
 		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> bwd_adjacency;
 	};
 

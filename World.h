@@ -23,7 +23,7 @@ namespace bs {
         EntityManager pixie_em;
 
         ComponentStorage<Position> Pos;
-        ComponentStorage<Entity> Genomes; 
+        ComponentStorage<Entity> Genome_entities; 
         ComponentStorage<float> facing;
         ComponentStorage<MoveUrge> move_urge;
         ComponentStorage<BrainState> brainstate;

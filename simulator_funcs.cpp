@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <memory>
 #include <iostream>
+#include <array>
 
 namespace bs {
 	void spawnPixie(World* w) {
@@ -20,11 +21,6 @@ namespace bs {
 		w->Pos.add(newPixie, Position{ randY, randX });
 		w->setGridCell(w->Pos.get(newPixie), newPixie);
 
-		/*uint8_t randR = randomengine->getRandomIntCustom(0, 255);
-		uint8_t randG = randomengine->getRandomIntCustom(0, 255);
-		uint8_t randB = randomengine->getRandomIntCustom(0, 255);
-		w->Col.add(newPixie, Color{ randR, randG, randB });*/		// this comes when creating a genome
-
 		w->facing.add(newPixie, 0.0);
 
 		w->move_urge.add(newPixie, MoveUrge{ 0, 0 });
@@ -34,29 +30,90 @@ namespace bs {
 		w->fitness.add(newPixie, 1.0);
 
 		// create a genome:
-		w->Genomes.add(newPixie, createGenome(w, newPixie));
+		w->Genome_entities.add(newPixie, createGenome(w, newPixie)); 
 			
 	}
 	
+	/*when inheriting a pixie, choose a pixie from the old population (with respect to their fitness) and copy their genome.
+	* FUNCTION: select() 
+	* this gets done in the generation before! The genome is saved in a temporary array.
+	* 
+	* While copying some mutations can happen. Then there are four cases:
+	* 1. no mutations. The whole genome (DNA, bwd_adj, topoOrder) can be copied directly into the new pixie.
+	* 2. only weight mutations. The modified genome (DNA, bwd_adj, topoOrder) can be copied, but the weight factor for that gene in 
+	*	 bwd_adj has to be adjusted. The color of that pixie should vary only slightly from the mother strand.
+	* 3. missense-mutation. The whole genome has to be evaluated from the start with createGenome, save the generate_DNA part. The
+	*    color of that pixie should deviate more from the pixieStrand
+	* 4. silent mutation: mutation in the snk/src ID, but still coding for the same gene. In this case bwd_adj AND topoOrder can stay
+	*	 the same, only DNA has to be updated
+	* FUNCTION: inheritGenome(), mutateDNA(), generateSimilarColor()
+	* Then place the Pixie into the new World and add its other components (as above)
+	* FUNCTION: inheritPixie() as a caller of the above functions \selectPixies
+	*/
 
-	void inheritPixie(World& newW, Entity genomeID) {
+	
+	
 
+	void inheritPixie(World* newW, const Genome oldGenome) {
+		Entity newPixie = newW->pixie_em.create();
+
+		int randX;
+		int randY;
+		while (true) {
+			randX = randomengine->getRandomIntCustom(0, gridsizeX - 1);
+			randY = randomengine->getRandomIntCustom(0, gridsizeY - 1);
+			if (newW->getGridCell(randY, randX) == EMPTY) { break; }
+		}
+		newW->Pos.add(newPixie, Position{ randY, randX });
+		newW->setGridCell(newW->Pos.get(newPixie), newPixie);
+
+		newW->facing.add(newPixie, 0.0);
+
+		newW->move_urge.add(newPixie, MoveUrge{ 0, 0 });
+
+		newW->brainstate.add(newPixie, BrainState{}); // empty brain 
+
+		newW->fitness.add(newPixie, 1.0);
+
+		// last step: inherit the genome
+		newW->Genome_entities.add(newPixie, inheritGenome(newW, newPixie, oldGenome));
 	}
+
 	void eachSimStep(World*, int gen) {
 
 	}
-	void newGeneration(World* newW, const std::optional<ComponentStorage<Genome>>& genome) {
-
+	void newGeneration(World* newW) {
+		for (int i = 0; i < numberOfPixies; i++) {
+			spawnPixie(newW);
+		}
 	}
-	void newGeneration(World* newW, const ComponentStorage<Genome>& genome) {
+	void newGeneration(World* newW, const std::vector<Genome>& nextMetagenome) {
+		// for each genome in nextMetagenome, spawn a new pixie
+		for (int i = 0; i < numberOfPixies; i++) {
+			inheritPixie(newW, nextMetagenome.at(i)); // analogous to spawnPixie; but with predefined Genomes
+		}
 
 	}
 	void evaluateFitness(World* w) {
 
 	}
+	std::vector<Genome> select(World* w) {
+		std::vector<Genome> selected_genomes;
+		selected_genomes.reserve(numberOfPixies);
+
+		while (selected_genomes.size() < numberOfPixies) { // this should stop when the size of numberOfPixies is reached
+			Entity rand_Entity = w->fitness.random_entity();
+			if (w->fitness.get(rand_Entity) > randomengine->getRandom01()) {
+				Genome pixie_gnm = w->genome.get(w->Genome_entities.get(rand_Entity)); 
+				selected_genomes.push_back(pixie_gnm);
+			}
+		}
+
+		return selected_genomes;
+	}
 
 
-	void simulateGenerations(const std::optional<ComponentStorage<Genome>>& startingMetagenome) {
+	void simulateGenerations() { // overload with NO starting metagenome (everything gets generated from scratch)
 
 		// before all generations:
 
@@ -66,7 +123,10 @@ namespace bs {
 		}
 
 		// Container for genomes for the next generation:
-		ComponentStorage<Genome> nextMetagenome;
+		//ComponentStorage<Genome> nextMetagenome;
+		std::vector<Genome> nextMetagenome; 
+		nextMetagenome.reserve(numberOfPixies);
+
 
 		//std::unique_ptr<World> oldWorld = nullptr; //empty world adress // we need either a dummy world or a placeholder adress
 		// for each generation:
@@ -82,14 +142,14 @@ namespace bs {
 			// if first world:
 			if (gen == 1) {
 				// spawn Pixies with new Genomes
-				newGeneration(newWorld_ptr, startingMetagenome);
+				newGeneration(newWorld_ptr);
 			}
 			// else if succeding world:
 			else {
 				// spawn new Pixies but inherit Genomes
 				newGeneration(newWorld_ptr, nextMetagenome);
 			}
-			nextMetagenome.clear_all();
+			nextMetagenome.clear();
 			
 			// simulate simSteps
 			for (int i = 0; i < numberOfSimSteps; i++) {
@@ -106,6 +166,7 @@ namespace bs {
 			evaluateFitness(newWorld_ptr);
 			//if (!chooseParentsByFitness) { // this means that pixies should be killed before choosing pixies to reproduce
 			//	applySelectionCriteria(newWorld);
+			nextMetagenome = select(newWorld_ptr);
 			//}
 			int fit_pixies = 0;
 			newWorld_ptr->fitness.for_each([&](Entity e, float c) {if (c > 0) { fit_pixies++; }; });
@@ -114,6 +175,74 @@ namespace bs {
 				break;
 			}
 			
+			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
+
+		}
+	}
+	void simulateGenerations(const std::vector<Genome>& startingMetagenome) { // overload WITH starting Metagenome. Keep function body updated!!
+
+		// before all generations:
+
+		// check if too many pixies for grid
+		if (gridsizeX * gridsizeY < numberOfPixies) {
+			std::cerr << "too many pixies for the grid!";
+		}
+
+		// Container for genomes for the next generation:
+		//ComponentStorage<Genome> nextMetagenome;
+		std::vector<Genome> nextMetagenome;
+		nextMetagenome.reserve(numberOfPixies);
+
+		nextMetagenome = startingMetagenome; // for first generation //////////////////////////////////////////
+		
+
+		//std::unique_ptr<World> oldWorld = nullptr; //empty world adress // we need either a dummy world or a placeholder adress
+		// for each generation:
+		for (int gen = 1; gen <= numberOfGenerations; gen++) {
+
+			std::cout << "generation " << gen << "\n";
+			//create new World
+			World newWorld; // on stack // pixie and brain Template EntityManagers are automatically created with the World
+			World* newWorld_ptr = &newWorld;
+
+			// set environment //
+
+			// if first world:
+			if (gen == 1) {
+				// spawn Pixies with new Genomes
+				newGeneration(newWorld_ptr, startingMetagenome); //////////////////////////////////////////////
+			}
+			// else if succeding world:
+			else {
+				// spawn new Pixies but inherit Genomes
+				newGeneration(newWorld_ptr, nextMetagenome);
+			}
+			nextMetagenome.clear();
+
+			// simulate simSteps
+			for (int i = 0; i < numberOfSimSteps; i++) {
+
+				//generationAge = i;
+				eachSimStep(newWorld_ptr, gen);
+
+				//if (fitnessUpdates == "every") {
+				//	evaluateFitness(newWorld);
+				//	//applySelectionCriteria(newWorld); // (only for soft selection criteria)
+				//}
+			}
+
+			evaluateFitness(newWorld_ptr);
+			//if (!chooseParentsByFitness) { // this means that pixies should be killed before choosing pixies to reproduce
+			//	applySelectionCriteria(newWorld);
+			// or select();
+			//}
+			int fit_pixies = 0;
+			newWorld_ptr->fitness.for_each([&](Entity e, float c) {if (c > 0) { fit_pixies++; }; });
+			if (fit_pixies == 0) {
+				std::cout << "total extinction!!\n";
+				break;
+			}
+
 			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
 
 		}

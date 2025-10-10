@@ -15,8 +15,9 @@ namespace bs {
 		//std::array<uint32_t, numberOfGenes> genes = generateDNA();
 		w->genome.get(newGenome).DNA = generateDNA();
 
-		// map DNA2NeuronTypes
-		// generate connection list
+		// skip the step of checkForClone because the propability of generating a clone from scratch is vanishingly low and we want maximum performance
+
+		// map DNA2NeuronTypes, generate connection list
 		std::array<Connection, numberOfGenes> conn_list = mapDNA2Connections(w->genome.get(newGenome).DNA);
 
 		// generate fwd_adjacency list
@@ -26,11 +27,9 @@ namespace bs {
 		checkForLoops_DFS(fwd_adjacency, conn_list);
 
 		// generate bwd_adjacency list
-		//std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> bwd_adjacency = generate_bwdAdj(conn_list);
 		w->genome.get(newGenome).bwd_adjacency = generate_bwdAdj(conn_list);
 
 		// calculate topology
-		//std::vector<NeuronFunc> topoOrder = calculate_topoOrder(bwd_adjacency);
 		calculate_topoOrder(w->genome.get(newGenome).bwd_adjacency, w->genome.get(newGenome).topoOrder);
 
 		// new random color for that genome
@@ -42,6 +41,149 @@ namespace bs {
 		return newGenome;
 	}
 
+	Entity inheritGenome(World* w, Entity p, const Genome& old_gnm) {
+		std::array<uint32_t, numberOfGenes> possibly_mutated_DNA = mutateDNA(old_gnm);
+
+		//bool silent_mut = false; // no change in connectivity or weight
+		bool weight_mut = false; // the weight of one or more connections has changed
+		bool neuron_mut = false; // a connection has changed
+
+		// compare old & new DNA
+		for (int i = 0; i < numberOfGenes; i++) {
+			uint32_t old_gene = old_gnm.DNA.at(i);
+			uint32_t new_gene = possibly_mutated_DNA.at(i);
+
+			if (old_gene != new_gene) {
+				Connection old_conn = mapDNA2Connection_single(old_gene);
+				Connection new_conn = mapDNA2Connection_single(new_gene);
+				// first: is the mutation in the neuronID- or the weight part?
+				if (old_conn.weight != new_conn.weight) { // weight mutation
+					weight_mut = true;
+				}
+				//second: does the old & new gene encode a different NeuronType?
+				if (old_conn.source != new_conn.source || old_conn.sink != new_conn.sink) { // missense
+					neuron_mut = true;
+				}
+				// if old_gene != new_gene, a silent mutation can always be ticked (because if the others apply, they override anyways)
+				//silent_mut = true;
+			}
+		}
+
+		// first check if there already is a braintemplate Entity with the same DNA. if yes, skip the initialization
+		Entity clone = checkForClone(w, old_gnm.DNA);
+		if (clone != INVALID) { return clone; }
+
+		// else create a new Entity
+		if (neuron_mut) {
+			// new topology
+			return inheritGenome_Missense(w, p, possibly_mutated_DNA, old_gnm);
+		}
+		else if (weight_mut) {
+			// inherit genome with modifed bwd_adj
+			return inheritGenome_Weight(w, p, possibly_mutated_DNA, old_gnm);
+		}
+		else {
+			// inherit whole genome with (new) DNA
+			return inheritGenome_Silent(w, p, possibly_mutated_DNA, old_gnm);
+		}
+	}
+	Entity inheritGenome_Missense(World* w, Entity p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
+		// basically createGenome without the generation of new DNA.
+		// create new Genome entity
+		Entity newGenome = w->braintemplates_em.create();
+		w->genome.add(newGenome, {}); // zero-initialize a Genome to later add components
+
+		w->genome.get(newGenome).DNA = new_dna;
+
+		// generate connection list
+		std::array<Connection, numberOfGenes> conn_list = mapDNA2Connections(w->genome.get(newGenome).DNA);
+
+		// generate fwd_adjacency list
+		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> fwd_adjacency = generate_fwdAdj(conn_list);
+
+		// check for loops and dead ends, remove
+		checkForLoops_DFS(fwd_adjacency, conn_list);
+
+		// generate bwd_adjacency list
+		w->genome.get(newGenome).bwd_adjacency = generate_bwdAdj(conn_list);
+
+		// calculate topology
+		calculate_topoOrder(w->genome.get(newGenome).bwd_adjacency, w->genome.get(newGenome).topoOrder);
+
+		// new random color for that genome (full variation scope)
+		w->genome.get(newGenome).col = generateSimilarColor(old_gnm.col, 1.0);
+
+		// return Genome entity
+		return newGenome;
+	}
+	Entity inheritGenome_Weight(World* w, Entity p, std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
+		// copy new DNA, copy old topoOrder and bwd_adj but update the weight for all bwd_adj connections.
+		// create new Genome entity
+		Entity newGenome = w->braintemplates_em.create();
+		w->genome.add(newGenome, {}); // zero-initialize a Genome to later add components
+
+		w->genome.get(newGenome).DNA = new_dna;
+
+		w->genome.get(newGenome).topoOrder = old_gnm.topoOrder;
+
+		w->genome.get(newGenome).col = generateSimilarColor(old_gnm.col, 0.5);
+
+		std::array<Connection, numberOfGenes> newConns = mapDNA2Connections(new_dna);
+
+		w->genome.get(newGenome).bwd_adjacency = old_gnm.bwd_adjacency;
+
+		// update weights
+		for (Connection& conn : newConns) {
+			for (int i = 0; i < numberOfGenes; i++) {
+				if (w->genome.get(newGenome).bwd_adjacency.at(conn.sink).at(i).neighbour == conn.source) {
+					w->genome.get(newGenome).bwd_adjacency.at(conn.sink).at(i).weight = conn.weight;
+				}
+			}
+		}
+
+		return newGenome;
+	}
+	Entity inheritGenome_Silent(World* w, Entity p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
+		// copy new DNA, copy old bwd_adj and topoOrder.
+		// create new Genome entity
+		Entity newGenome = w->braintemplates_em.create();
+		w->genome.add(newGenome, {}); // zero-initialize a Genome to later add components
+
+		w->genome.get(newGenome).DNA = new_dna;
+
+		w->genome.get(newGenome).topoOrder = old_gnm.topoOrder;
+
+		w->genome.get(newGenome).col = generateSimilarColor(old_gnm.col, 0.5);
+
+		w->genome.get(newGenome).bwd_adjacency = old_gnm.bwd_adjacency;
+
+		return newGenome;
+	}
+
+	std::array<uint32_t, numberOfGenes> mutateDNA(const Genome& gnome) {
+		std::array<uint32_t, numberOfGenes> possiblyMutatedDNA;
+
+		for (int n = 0; n > numberOfGenes; n++) {
+			uint32_t dna_copy = gnome.DNA.at(n);
+			for (int i = 0; i < 32; i++) {
+				if (randomengine->getRandom01() < mutationRate) { dna_copy ^= (1u << i); } // bit-masking and NOT-operator
+			}
+			possiblyMutatedDNA.at(n) = dna_copy;
+		}
+		return possiblyMutatedDNA;
+	}
+
+	Color generateSimilarColor(const Color old_c, float factor) {
+		Color newColor{};
+
+		newColor.r = std::clamp(static_cast<int>(old_c.r) + randomengine->getRandomCustom(-color_variation * factor, color_variation * factor), 0, 255);
+		newColor.g = std::clamp(static_cast<int>(old_c.g) + randomengine->getRandomCustom(-color_variation * factor, color_variation * factor), 0, 255);
+		newColor.b = std::clamp(static_cast<int>(old_c.b) + randomengine->getRandomCustom(-color_variation * factor, color_variation * factor), 0, 255);
+
+		return newColor;
+	}
+
+
 	std::array<uint32_t,numberOfGenes> generateDNA() {
 		std::array<uint32_t, numberOfGenes> genes_list{};
 
@@ -51,50 +193,27 @@ namespace bs {
 
 		return genes_list;
 	}
+	
+	Entity checkForClone(World* w, std::array<uint32_t, numberOfGenes> dna) {
+		// iterate through the genomes-components and look for potential matches
+		Entity match = INVALID;
+		for (const Entity& e : w->genome.get_entities()) {
+			if (w->genome.get(e).DNA == dna) {
+				match = e;
+				return match;
+			}
+		}
+		return match;
+	}
 
 	std::array<Connection, numberOfGenes> mapDNA2Connections(std::array<uint32_t, numberOfGenes>&  genes) {
 
 		std::array<Connection, numberOfGenes> conn_list{};
 
 		for (int i = 0; i < numberOfGenes; i++) {
-			
-			// slice the uint32_t into 5 slices (srcType, srcID, snkType, snkID, weight)
-			bool srcType = extractBits(genes.at(i), 0, 0);
-			bool snkType = extractBits(genes.at(i), 8, 8);
-			uint8_t srcID = extractBits(genes.at(i), 1, 7);
-			uint8_t snkID = extractBits(genes.at(i), 9, 15);
-			int16_t weight = extractBits(genes.at(i), 16, 31); 
-
-			Connection conn{ true };
-			// divide the IDs by the number of neurons in that class. neuronClasses defined in Neurons.cpp
-			if (srcType == 0) { //internal Neuron
-				float num_Neurons = neuronClasses.at(2) - neuronClasses.at(1);
-				float normfactor_src = num_Neurons / 128; //2^7
-				conn.source = static_cast<NeuronTypes>(std::floor(srcID * normfactor_src) + neuronClasses.at(1));
-			}
-			else if (srcType == 1) { //sensor Neuron
-				float num_Neurons = neuronClasses.at(1) - neuronClasses.at(0);
-				float normfactor_src = num_Neurons / 128; //2^7
-				conn.source = static_cast<NeuronTypes>(std::floor(srcID * normfactor_src));
-			}
-			else { throw std::out_of_range("source Index oor"); }
-
-			if (snkType == 0) {//internal neuron
-				float num_Neurons = neuronClasses.at(2) - neuronClasses.at(1);
-				float normfactor_snk = num_Neurons / 128; //2^7
-				conn.sink = static_cast<NeuronTypes>(std::floor(snkID * normfactor_snk) + neuronClasses.at(1));
-			}
-			else if (snkType == 1) {//action neuron
-				float num_Neurons = neuronClasses.at(3) - neuronClasses.at(2);
-				float normfactor_snk = num_Neurons / 128; //2^7
-				conn.sink = static_cast<NeuronTypes>(std::floor(snkID * normfactor_snk) + neuronClasses.at(2));
-			}	
-			else { throw std::out_of_range("sink Index oor"); }
-
-			conn.weight = static_cast<double>(weight * (2. * weight_factor / 65536.0f)); // range from -weight_f to +weight_f
-
-			conn_list.at(i) = conn;
+			conn_list.at(i) = mapDNA2Connection_single(genes.at(i));
 		}
+
 		// ONLY FOR DEBUG ///////////////////////////
 		/*for (auto adj : conn_list) {
 			std::cout << static_cast<int>(adj.source) << "->" 
@@ -103,8 +222,47 @@ namespace bs {
 		std::cout << "\n";*/
 		/////////////////////////////////////////////
 
-
 		return conn_list;
+	}
+
+	Connection mapDNA2Connection_single(const uint32_t& gene) {
+
+		bool srcType = extractBits(gene, 0, 0);
+		bool snkType = extractBits(gene, 8, 8);
+		uint8_t srcID = extractBits(gene, 1, 7);
+		uint8_t snkID = extractBits(gene, 9, 15);
+		int16_t weight = extractBits(gene, 16, 31);
+
+		Connection conn{ true };
+
+		// divide the IDs by the number of neurons in that class. neuronClasses defined in Neurons.cpp
+		if (srcType == 0) { //internal Neuron
+			float num_Neurons = neuronClasses.at(2) - neuronClasses.at(1);
+			float normfactor_src = num_Neurons / 128; //2^7
+			conn.source = static_cast<NeuronTypes>(std::floor(srcID * normfactor_src) + neuronClasses.at(1));
+		}
+		else if (srcType == 1) { //sensor Neuron
+			float num_Neurons = neuronClasses.at(1) - neuronClasses.at(0);
+			float normfactor_src = num_Neurons / 128; //2^7
+			conn.source = static_cast<NeuronTypes>(std::floor(srcID * normfactor_src));
+		}
+		else { throw std::out_of_range("source Index oor"); }
+
+		if (snkType == 0) {//internal neuron
+			float num_Neurons = neuronClasses.at(2) - neuronClasses.at(1);
+			float normfactor_snk = num_Neurons / 128; //2^7
+			conn.sink = static_cast<NeuronTypes>(std::floor(snkID * normfactor_snk) + neuronClasses.at(1));
+		}
+		else if (snkType == 1) {//action neuron
+			float num_Neurons = neuronClasses.at(3) - neuronClasses.at(2);
+			float normfactor_snk = num_Neurons / 128; //2^7
+			conn.sink = static_cast<NeuronTypes>(std::floor(snkID * normfactor_snk) + neuronClasses.at(2));
+		}
+		else { throw std::out_of_range("sink Index oor"); }
+
+		conn.weight = static_cast<double>(weight * (2. * weight_factor / 65536.0f)); // range from -weight_f to +weight_f
+
+		return conn;
 	}
 
 	uint32_t extractBits(uint32_t x, int low, int high) {

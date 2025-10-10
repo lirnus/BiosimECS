@@ -12,16 +12,16 @@ int main() {
 	std::cout << "program is running...\n\n";
 	auto start = std::chrono::high_resolution_clock::now();
 
-	World myWorld;
+	/*World myWorld;
 	World* myWorld_ptr = &myWorld;
-
-	
 
 	for (int i = 0; i < numberOfPixies; i++) {
 		spawnPixie(myWorld_ptr);
-	}
+	}*/
 
 	//myWorld_ptr->printGrid();
+
+	simulateGenerations();
 	
 	
 	auto end = std::chrono::high_resolution_clock::now();

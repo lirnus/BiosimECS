@@ -35,7 +35,7 @@ namespace bs {
 	//extern bool chooseParentsByFitness; // if True, then fitness plays a role in how likely a pixie will reproduce
 
 	// pixie parameters
-	//extern float mutationRate;
+	static constexpr float mutationRate = 0.0; //usual value ~0.001 or 0.0001
 	static constexpr float weight_factor = 2; //range of connection weight encoded by DNA. Range is {-weight_f..+weight_f}
 
 	// analytics
@@ -54,7 +54,7 @@ namespace bs {
 	//extern int GIF_resolution; //number of pixels = width of a cell
 	//extern int createGIFevery; //generate a GIF every ... generations
 	//extern std::set<int> createGIFfor; //generate a GIF for selected generations
-	//extern int color_variation; //regulates how similar the color of two mutated lineages are
+	static constexpr int color_variation = 20; //regulates how similar the color of two mutated lineages are
 
 	// file system paths etc.
 	/*extern std::string folder_dir;
