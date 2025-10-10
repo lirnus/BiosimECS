@@ -16,11 +16,11 @@ namespace bs {
 	//struct Adjacency { bool valid = false;  NeuronTypes neighbour{}; float weight{}; }; //zero-initialized as { false, NeuronTypes{0}, 0.0f } { false, NeuronTypes{0}, NeuronTypes{0}, 0.0f }
 
 	std::array<uint32_t, numberOfGenes> mutateDNA(const Genome& gnome);
-	Color generateSimilarColor(const Color old_c, float factor);
+	Color generateSimilarColor(const Color& old_c, float factor);
 	Entity inheritGenome(World* w, Entity p, const Genome& old_gnm);
-	Entity inheritGenome_Missense(World* w, Entity p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm);
-	Entity inheritGenome_Weight(World* w, Entity p, std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm);
-	Entity inheritGenome_Silent(World* w, Entity p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm);
+	Entity inheritGenome_Missense(World* w, Entity& p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm);
+	Entity inheritGenome_Weight(World* w, Entity& p, std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm);
+	Entity inheritGenome_Silent(World* w, Entity& p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm);
 
 	std::array<uint32_t, numberOfGenes> generateDNA();
 

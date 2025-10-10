@@ -87,7 +87,7 @@ namespace bs {
 			return inheritGenome_Silent(w, p, possibly_mutated_DNA, old_gnm);
 		}
 	}
-	Entity inheritGenome_Missense(World* w, Entity p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
+	Entity inheritGenome_Missense(World* w, Entity& p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
 		// basically createGenome without the generation of new DNA.
 		// create new Genome entity
 		Entity newGenome = w->braintemplates_em.create();
@@ -116,7 +116,7 @@ namespace bs {
 		// return Genome entity
 		return newGenome;
 	}
-	Entity inheritGenome_Weight(World* w, Entity p, std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
+	Entity inheritGenome_Weight(World* w, Entity& p, std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
 		// copy new DNA, copy old topoOrder and bwd_adj but update the weight for all bwd_adj connections.
 		// create new Genome entity
 		Entity newGenome = w->braintemplates_em.create();
@@ -143,7 +143,7 @@ namespace bs {
 
 		return newGenome;
 	}
-	Entity inheritGenome_Silent(World* w, Entity p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
+	Entity inheritGenome_Silent(World* w, Entity& p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
 		// copy new DNA, copy old bwd_adj and topoOrder.
 		// create new Genome entity
 		Entity newGenome = w->braintemplates_em.create();
@@ -173,7 +173,7 @@ namespace bs {
 		return possiblyMutatedDNA;
 	}
 
-	Color generateSimilarColor(const Color old_c, float factor) {
+	Color generateSimilarColor(const Color& old_c, float factor) {
 		Color newColor{};
 
 		newColor.r = std::clamp(static_cast<int>(old_c.r) + randomengine->getRandomCustom(-color_variation * factor, color_variation * factor), 0, 255);

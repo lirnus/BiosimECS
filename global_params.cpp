@@ -12,6 +12,7 @@ namespace bs {
 	std::string EnvironmentKey = "empty";*/
 
 
+	int generationAge{};
 
 	// random engine
 	Random* randomengine = new bs::Random();

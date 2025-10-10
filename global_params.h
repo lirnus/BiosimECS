@@ -64,8 +64,8 @@ namespace bs {
 	extern Random* randomengine;
 
 	// simStep "clock" to track the age of a generation
-	/*extern int generationAge;
+	extern int generationAge;
 
-	extern void initFolderDir();
+	/*extern void initFolderDir();
 	extern void initFolderDir(std::string baseDir);*/
 }

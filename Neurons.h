@@ -1,20 +1,46 @@
 
 #include <cstdint>
-#include "World.h" // incl ecs_framework, components, global_params
+#include "pixie_funcs.h" // incl World, ecs_framework, components, global_params
 
 #pragma once
 
 namespace bs {
 
-	
+	// file containing Neuron functions
 
-	// vector tracking the indexation of the 3 neuron "classes"
-	extern const std::vector<int> neuronClasses;
+	// "axon" functions to propagate information through the brain network
+	void sumAndClamp(const std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj, const NeuronTypes& neuron, World* w, Entity p); // uses bwd_adj to find all sources, sum up those values and clamp them with tanh()
 
-	void xPos_neuronfunc(World* w, Entity e);
+	void update_BrainState(const NeuronTypes& neuron, World* w, Entity p); // function to retrieve outputs from one neuronfunc and store it in the appropriate brainstate slot
+
+	void evaluate(const std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj, const NeuronTypes& neuron, World* w, Entity p);
+
+	// neuron functions (directly return their output)
+	//s
+	float xPos_neuronfunc(World* w, Entity p);
+
+	float yPos_neuronfunc(World* w, Entity p);
+
+	float popDensityFwd_neuronfunc(World* w, Entity p);
+
+	float age_neuronfunc(World* w, Entity p);
+	//a													actions return floats, but that can be any arbitray number 
+	float moveW_neuronfunc(World* w, Entity p);
+
+	float moveE_neuronfunc(World* w, Entity p);
+
+	float moveN_neuronfunc(World* w, Entity p);
+
+	float moveS_neuronfunc(World* w, Entity p);
+
+	//void _neuronfunc(World* w, Entity p);
+
+
+	// brain functions
+	void execute_staticBrain(World* w, Entity p);
 
 	// lookup-Table for Neuron functions
-	/*using NeuronFunc = void(*)(Entity e);
-	extern std::vector<NeuronFunc> funcTable(NUM_NEURONS);*/
+	using NeuronFunc = float(*)(World* w, Entity e);
+	extern std::array<NeuronFunc, NUM_NEURONS> funcTable;
 	void initFuncTable();
 }

@@ -11,6 +11,8 @@ int main() {
 
 	std::cout << "program is running...\n\n";
 	auto start = std::chrono::high_resolution_clock::now();
+	
+	initFuncTable();
 
 	/*World myWorld;
 	World* myWorld_ptr = &myWorld;

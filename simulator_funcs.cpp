@@ -30,10 +30,9 @@ namespace bs {
 		w->fitness.add(newPixie, 1.0);
 
 		// create a genome:
-		w->Genome_entities.add(newPixie, createGenome(w, newPixie)); 
+		w->PixieGenomes.add(newPixie, createGenome(w, newPixie));
 			
 	}
-	
 	/*when inheriting a pixie, choose a pixie from the old population (with respect to their fitness) and copy their genome.
 	* FUNCTION: select() 
 	* this gets done in the generation before! The genome is saved in a temporary array.
@@ -50,10 +49,6 @@ namespace bs {
 	* Then place the Pixie into the new World and add its other components (as above)
 	* FUNCTION: inheritPixie() as a caller of the above functions \selectPixies
 	*/
-
-	
-	
-
 	void inheritPixie(World* newW, const Genome oldGenome) {
 		Entity newPixie = newW->pixie_em.create();
 
@@ -76,12 +71,9 @@ namespace bs {
 		newW->fitness.add(newPixie, 1.0);
 
 		// last step: inherit the genome
-		newW->Genome_entities.add(newPixie, inheritGenome(newW, newPixie, oldGenome));
+		newW->PixieGenomes.add(newPixie, inheritGenome(newW, newPixie, oldGenome));
 	}
 
-	void eachSimStep(World*, int gen) {
-
-	}
 	void newGeneration(World* newW) {
 		for (int i = 0; i < numberOfPixies; i++) {
 			spawnPixie(newW);
@@ -94,6 +86,20 @@ namespace bs {
 		}
 
 	}
+	void eachSimStep(World* w, int gen) {
+		const auto& entity_list = w->PixieGenomes.get_entities();
+		for (const Entity& p : entity_list) {
+			execute_staticBrain(w, p);
+		}
+
+		for (const Entity& p : w->queueForMove) {
+			executeMove(w, p);
+		}
+		w->queueForMove.clear();
+		 
+		//(pheromoneDecay)
+		//render simstep if correct gen
+	}
 	void evaluateFitness(World* w) {
 
 	}
@@ -104,7 +110,7 @@ namespace bs {
 		while (selected_genomes.size() < numberOfPixies) { // this should stop when the size of numberOfPixies is reached
 			Entity rand_Entity = w->fitness.random_entity();
 			if (w->fitness.get(rand_Entity) > randomengine->getRandom01()) {
-				Genome pixie_gnm = w->genome.get(w->Genome_entities.get(rand_Entity)); 
+				Genome pixie_gnm = w->genome.get(w->PixieGenomes.get(rand_Entity)); 
 				selected_genomes.push_back(pixie_gnm);
 			}
 		}
@@ -154,7 +160,7 @@ namespace bs {
 			// simulate simSteps
 			for (int i = 0; i < numberOfSimSteps; i++) {
 
-				//generationAge = i;
+				generationAge = i;
 				eachSimStep(newWorld_ptr, gen);
 
 				//if (fitnessUpdates == "every") {

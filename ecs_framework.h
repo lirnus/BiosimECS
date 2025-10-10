@@ -69,7 +69,7 @@ namespace bs {
 			return components[entity_to_index[e]];
 		}
 
-		const std::vector<Entity> get_entities() const {
+		const std::vector<Entity>& get_entities() const {
 			return entities;
 		}
 

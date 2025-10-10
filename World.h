@@ -1,4 +1,5 @@
 #include <vector>
+#include <unordered_set>
 #include <cstdint>
 
 #include "components.h" // incl ecs_framework, global_params
@@ -23,22 +24,25 @@ namespace bs {
         EntityManager pixie_em;
 
         ComponentStorage<Position> Pos;
-        ComponentStorage<Entity> Genome_entities; 
+        ComponentStorage<Entity> PixieGenomes; 
         ComponentStorage<float> facing;
         ComponentStorage<MoveUrge> move_urge;
         ComponentStorage<BrainState> brainstate;
         ComponentStorage<float> fitness;
 
+        std::unordered_set<Entity> queueForMove;
 
         EntityManager braintemplates_em;
 
         ComponentStorage<Genome> genome;
 
         int getGridCell(int r, int c);
-        int getGridCell(std::vector<int>);
+        int getGridCell(Position& pos);
         void setGridCell(int r, int c, int value);
         void setGridCell(std::vector<int>, int value);
         void setGridCell(Position&, int value);
+        bool isInBounds(int r, int c);
+        bool isInBounds(Position& pos);
 
         void printGrid();
     };

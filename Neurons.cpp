@@ -6,26 +6,198 @@
 
 namespace bs {
 
-	// lookup table for Neuron functions
-	const std::vector<int> neuronClasses = { 0, 4, 7, 11 };
+	/*const std::vector<int> neuronClasses = { 0, 4, 7, 11 };*/
 
 
-	using NeuronFunc = void(*)(World* w, Entity e);
-	std::vector<NeuronFunc> funcTable(NUM_NEURONS);
+	//using NeuronFunc = void(*)(World* w, Entity e);
+	////std::vector<NeuronFunc> funcTable(NUM_NEURONS);
+	std::array < NeuronFunc, NUM_NEURONS > funcTable{};
 
 	void initFuncTable() {
+		funcTable.fill(nullptr);
+
 		funcTable[sX_POS] = &xPos_neuronfunc;
+		funcTable[sY_POS] = &yPos_neuronfunc;
+		funcTable[sPOP_DENSITY_FWD] = &popDensityFwd_neuronfunc;
+		funcTable[sAGE] = age_neuronfunc;
+		funcTable[iINT_1] = nullptr;
+		funcTable[iINT_2] = nullptr;
+		funcTable[iINT_3] = nullptr;
+		funcTable[aMOVE_W] = moveW_neuronfunc;
+		funcTable[aMOVE_E] = moveE_neuronfunc;
+		funcTable[aMOVE_N] = moveN_neuronfunc;
+		funcTable[aMOVE_S] = moveS_neuronfunc;
 	}
 
-	void xPos_neuronfunc(World* w, Entity e) {
+	// AXON FUNCTIONS ////////////////////////////////////////////////////////////////////////////////
+
+	void update_BrainState(
+		const NeuronTypes& neuron, 
+		World* w, 
+		Entity pixie
+	) {
+		w->brainstate.get(pixie).lastStepOutputs = w->brainstate.get(pixie).outputs;
+		w->brainstate.get(pixie).outputs.at(neuron) = funcTable.at(neuron)(w, pixie);
+	}
+
+	void sumAndClamp(
+		const std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj, 
+		const NeuronTypes& neuron, 
+		World* w, 
+		Entity p
+	) {
+		float input_sum = 0.0;
+		for (Adjacency adj : bwd_adj.at(neuron)) {
+			if (adj.valid) { // add up all the outputs from neighbouring sources
+				// maybe consider a check if the value actually is set (if topology is correct, this should be the case)
+				if (w->brainstate.get(p).outputs.at(adj.neighbour) == VOID) { throw std::invalid_argument("VOID passed as input"); } // This can be cut for performance enhancement
+				input_sum += w->brainstate.get(p).outputs.at(adj.neighbour);
+			}
+		}
+
+		w->brainstate.get(p).outputs.at(neuron) = std::tanh(input_sum);
+	}
+
+	void evaluate(
+		const std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj,
+		const NeuronTypes& neuron,
+		World* w,
+		Entity p
+	) {
+		sumAndClamp(bwd_adj, neuron, w, p);
+
+		if (randomengine->getRandom01() < w->brainstate.get(p).outputs.at(neuron)) {
+			// fire neuron
+			funcTable.at(neuron)(w, p);
+		}
+	}
+
+
+	void execute_staticBrain(World* w, Entity p) {
+		// execute topoOrder functions
+		std::vector<NeuronTypes>& topoOrder = w->genome.get(w->PixieGenomes.get(p)).topoOrder;
+		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj = w->genome.get(w->PixieGenomes.get(p)).bwd_adjacency;
+		
+		for (auto& neuron : topoOrder) {
+			// for each, check which neuronClass the index belongs to
+			
+			// if sensor: directly call sensor Function via update_BrainState()
+			if (neuron >= neuronClasses.at(0) && neuron < neuronClasses.at(1)) {
+				update_BrainState(neuron, w, p);
+			}
+			
+			// if internal: call sumAndClamp(bwd_adj, neuron), which also automatically updates BrainState
+			if (neuron >= neuronClasses.at(1) && neuron < neuronClasses.at(2)) {
+				sumAndClamp(bwd_adj, neuron, w, p);
+			}
+			// if action: call Evaluate(), which uses sumAndClamp to update BrainState, and then evaluates if the action should be fired.
+			if (neuron >= neuronClasses.at(2) && neuron < neuronClasses.at(3)) {
+				evaluate(bwd_adj, neuron, w, p);
+			}
+
+		}
+	}
+
+
+	// NEURON FUNCTIONS //////////////////////////////////////////////////////////////////////////////
+
+	// SENSOR //////////////////////////////////////
+
+	float xPos_neuronfunc(World* w, Entity p) {
 		// get the x position of the pixie
-		assert(w->Pos.has(e));
-		int x_pos = w->Pos.get(e).xPos;
+		assert(w->Pos.has(p));
+		int x_pos = w->Pos.get(p).xPos;
 
 		// divide it by the total x-size of the grid
-		float out = static_cast<float>(gridsizeX) / x_pos;
+		return static_cast<float>(gridsizeX) / x_pos;
 
-		// transfer the result into the outputs-list of that pixie's brain
-		w->brainstate.get(e).outputs[sX_POS] = out;
 	}
+
+	float yPos_neuronfunc(World* w, Entity p) {
+		// get the x position of the pixie
+		assert(w->Pos.has(p));
+		int y_pos = w->Pos.get(p).yPos;
+
+		// divide it by the total x-size of the grid
+		return static_cast<float>(gridsizeX) / y_pos;
+	}
+
+	float popDensityFwd_neuronfunc(World* w, Entity p) {
+
+		// get the view axis, compute the denstity 'quantum' for each pixie and sum it up
+		// divide the sum by twice the search - Radius to get a value between 0 and 1
+		//std::vector<float> cache{};
+
+		//float viewAxis = w->facing.get(p);
+		//std::vector<std::pair<Object*, double>> neighbourhood{};
+		//for (auto pair : attributedPixie.getAllEuclidianDistances()) {
+		//	if (pair.first->shape == "pixie") {
+		//		if (pair.second > 0) {
+		//			neighbourhood.push_back(pair);
+		//		}
+		//	}
+		//}
+		//for (auto pixie_dist : neighbourhood) {
+
+		//	float relAngle = attributedPixie.getRelativeAngle(pixie_dist.first);
+		//	float factor = std::cos(relAngle - viewAxis);
+		//	cache.push_back(1 / pixie_dist.second * factor);
+		//}
+
+		//float sum{};
+		//for (auto it = cache.begin(); it != cache.end(); ++it) {
+		//	sum += *it;
+		//}
+
+		//// empirical norming factor to get similar results between 0 and 1 for all search radii
+		//float norming_factor = 1.9 * (attributedPixie.searchRadius - 0.5);
+
+		//double out = (sum / norming_factor) / 2 + 0.5; // centered around 0.5
+
+		//output = std::clamp(out, 0., 1.); // just to make sure
+
+		return 1;
+	}
+
+	float age_neuronfunc(World* w, Entity p) {
+		return static_cast<float>(generationAge) / numberOfSimSteps;
+	}
+
+	// ACTION //////////////////////////////////////
+
+	float moveW_neuronfunc(World* w, Entity p) {
+
+		w->move_urge.get(p).moveX -= 1;
+		w->queueForMove.insert(p);
+
+		return VOID;
+	}
+
+	float moveE_neuronfunc(World* w, Entity p) {
+
+		w->move_urge.get(p).moveX += 1;
+		w->queueForMove.insert(p);
+
+		return VOID;
+	}
+
+	float moveN_neuronfunc(World* w, Entity p) {
+
+		w->move_urge.get(p).moveY += 1;
+		w->queueForMove.insert(p);
+
+		return VOID;
+	}
+
+	float moveS_neuronfunc(World* w, Entity p) {
+
+		w->move_urge.get(p).moveY -= 1;
+		w->queueForMove.insert(p);
+
+		return VOID;
+	}
+
+
+	//future note: OnOff-neuron doesn't need a genome-wide variable "isOn", it can just return the last output again and again.
+	//if the state should be switched, setOnOff can directly change lastOutputs to switch the variable
 }

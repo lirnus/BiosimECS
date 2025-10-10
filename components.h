@@ -27,6 +27,11 @@ namespace bs {
 		NUM_NEURONS // 11U
 	};
 
+	// vector tracking the indexation of the 3 neuron "classes"
+	//extern const std::vector<int> neuronClasses;
+	//const std::vector<int> neuronClasses = { 0, 4, 7, 11 };
+	static constexpr std::array<int, 4> neuronClasses = { 0, 4, 7, 11 };
+
 	//class World;
 
 	// components for pixies
@@ -36,7 +41,15 @@ namespace bs {
 
 	struct MoveUrge { uint8_t moveY, moveX; };
 
-	struct BrainState { std::vector<float> outputs{ NUM_NEURONS, VOID }, lastStepOutputs{ NUM_NEURONS, 0.0 }; };
+	struct BrainState { 
+		BrainState() {
+			outputs.fill(VOID);
+			lastStepOutputs.fill(0.0);
+		}
+
+		std::array<float, NUM_NEURONS> outputs; 
+		std::array<float, NUM_NEURONS> lastStepOutputs;
+	};
 	
 
 	struct Connection { bool valid = false;  NeuronTypes source; NeuronTypes sink; float weight; }; //zero-initialized as
