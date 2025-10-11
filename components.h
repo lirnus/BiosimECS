@@ -55,10 +55,12 @@ namespace bs {
 		Neighbourhood(){
 			neighbours.reserve(defaultSearchRadius * defaultSearchRadius); // pi*r² ?
 			distances.reserve(defaultSearchRadius * defaultSearchRadius);
+			relAngles.reserve(defaultSearchRadius * defaultSearchRadius);
 		}
 
 		std::vector<Entity> neighbours;
 		std::vector<float> distances;
+		std::vector<float> relAngles;
 	};
 
 

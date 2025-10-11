@@ -37,7 +37,7 @@ namespace bs {
 	}
 
 	// surroundings
-	Neighbourhood scanNeighbourhood(World* w, const Entity& p) {
+	const Neighbourhood& scanNeighbourhood(World* w, const Entity& p) {
 
 		//first check if that Pixie already has an assigned neighbourhood
 		if (w->pixie_neighbourhood.has(p)) {
@@ -55,13 +55,19 @@ namespace bs {
 			for (int r = yPos - searchR; r < yPos + searchR; r++) {
 				for (int c = xPos - searchR; c < xPos + searchR; c++) {
 
-					if (isInSearchRadius(c, r, w, p)) {
-						Entity neighbour = w->getGridCell(r, c);
-						if (neighbour != EMPTY) {
-							nghbhd.neighbours.push_back(neighbour);
-							nghbhd.distances.push_back(calcEuclidianDistance(c, r));
+					if (w->isInBounds(r, c)) {
+						if (isInSearchRadius(c, r, w, p)) {
+
+							Entity neighbour = w->getGridCell(r, c);
+							if (neighbour != EMPTY) {
+								nghbhd.neighbours.push_back(neighbour);
+								nghbhd.distances.push_back(calcEuclidianDistance(c, r));
+								nghbhd.relAngles.push_back(getRelAngle(getRelativePosition(r, c, w->Pos.get(p))));
+							}
+
 						}
 					}
+
 				}
 			}
 			w->pixie_neighbourhood.add(p, nghbhd);
@@ -80,7 +86,26 @@ namespace bs {
 		
 		return relPos;
 	}
+	
+	float getRelAngle(const int relY, const int relX) {
+		double relAngle = std::atan2(relY, relX);
 
+		if (relAngle < 0) {
+			relAngle += 2 * PI; // angle runs ccw starting east
+		}
+
+		return relAngle;
+	}
+	float getRelAngle(const Position& relPos) {
+		double relAngle = std::atan2(relPos.yPos, relPos.xPos);
+
+		if (relAngle < 0) {
+			relAngle += 2 * PI; // angle runs ccw starting east
+		}
+
+		return relAngle;
+	}
+	
 	float calcEuclidianDistance(const int x, const int y) {
 		return std::sqrt(y * y + x * x);
 	}

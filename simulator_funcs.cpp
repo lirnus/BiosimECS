@@ -72,7 +72,7 @@ namespace bs {
 
 		newW->fitness.add(newPixie, 1.0);
 
-		w->searchRadius.add(newPixie, defaultSearchRadius);
+		newW->searchRadius.add(newPixie, defaultSearchRadius);
 
 		// last step: inherit the genome
 		newW->PixieGenomes.add(newPixie, inheritGenome(newW, newPixie, oldGenome));

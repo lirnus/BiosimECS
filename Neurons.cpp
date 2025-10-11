@@ -149,39 +149,33 @@ namespace bs {
 
 	float popDensityFwd_neuronfunc(World* w, Entity p) {
 
+		// I want to keep this function stack-compatible! No heap allocation if possible
+
 		// get the view axis, compute the denstity 'quantum' for each pixie and sum it up
 		// divide the sum by twice the search - Radius to get a value between 0 and 1
-		//std::vector<float> cache{};
 
-		//float viewAxis = w->facing.get(p);
-		//std::vector<std::pair<Object*, double>> neighbourhood{};
-		//for (auto pair : attributedPixie.getAllEuclidianDistances()) {
-		//	if (pair.first->shape == "pixie") {
-		//		if (pair.second > 0) {
-		//			neighbourhood.push_back(pair);
-		//		}
-		//	}
-		//}
-		//for (auto pixie_dist : neighbourhood) {
+		float cache{};
 
-		//	float relAngle = attributedPixie.getRelativeAngle(pixie_dist.first);
-		//	float factor = std::cos(relAngle - viewAxis);
-		//	cache.push_back(1 / pixie_dist.second * factor);
-		//}
+		float viewAxis = w->facing.get(p);
+		
+		const Neighbourhood& nbhd = scanNeighbourhood(w, p);
 
-		//float sum{};
-		//for (auto it = cache.begin(); it != cache.end(); ++it) {
-		//	sum += *it;
-		//}
+		for (int i = 0; i < nbhd.neighbours.size(); i++) {
+			if (Entity nb = nbhd.neighbours.at(i); 
+				nb != BARRIER && nb != FOOD) {
 
-		//// empirical norming factor to get similar results between 0 and 1 for all search radii
-		//float norming_factor = 1.9 * (attributedPixie.searchRadius - 0.5);
+				float factor = std::cos(nbhd.relAngles.at(i) - viewAxis);
+				cache += (1 / nbhd.distances.at(i) * factor);
+			}
+		}
 
-		//double out = (sum / norming_factor) / 2 + 0.5; // centered around 0.5
+		// empirical norming factor to get similar results between 0 and 1 for all search radii
+		float norming_factor = 1.9 * (w->searchRadius.get(p) - 0.5);
 
-		//output = std::clamp(out, 0., 1.); // just to make sure
+		float out = (cache / norming_factor) / 2 + 0.5; // centered around 0.5
 
-		return 1;
+		std::cout << "population density pixie " << p << ": " << out << "\n";
+		return std::clamp(out, static_cast<float>(0), static_cast<float>(1));
 	}
 
 	float age_neuronfunc(World* w, Entity p) {

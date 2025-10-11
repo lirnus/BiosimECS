@@ -8,6 +8,8 @@
 namespace bs {
 	// This file contains global variables that are intended to be accessible from everywhere in the code
 
+	static constexpr double PI = 3.141592653589;
+
 	// world parameters
 	/*extern int gridsizeY;
 	extern int gridsizeX;
