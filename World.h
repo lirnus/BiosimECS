@@ -29,6 +29,9 @@ namespace bs {
         ComponentStorage<MoveUrge> move_urge;
         ComponentStorage<BrainState> brainstate;
         ComponentStorage<float> fitness;
+        ComponentStorage<float> searchRadius;
+
+        ComponentStorage<Neighbourhood> pixie_neighbourhood;
 
         std::unordered_set<Entity> queueForMove;
 
@@ -36,8 +39,8 @@ namespace bs {
 
         ComponentStorage<Genome> genome;
 
-        int getGridCell(int r, int c);
-        int getGridCell(Position& pos);
+        int getGridCell(int r, int c) const;
+        int getGridCell(Position& pos) const;
         void setGridCell(int r, int c, int value);
         void setGridCell(std::vector<int>, int value);
         void setGridCell(Position&, int value);

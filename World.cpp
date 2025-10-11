@@ -9,11 +9,11 @@ namespace bs {
         queueForMove.reserve(numberOfPixies);
 	}
 
-    int World::getGridCell(int r, int c) {
+    int World::getGridCell(int r, int c) const {
         if (r >= gridsizeY || c >= gridsizeX || r < 0 || c < 0) throw std::out_of_range("Index oor");
         return grid[r * gridsizeX + c]; // automatic conversion of row, col in 1D
     }
-    int World::getGridCell(Position& pos) {
+    int World::getGridCell(Position& pos) const {
         int r = pos.yPos;
         int c = pos.xPos;
         if (r >= gridsizeY || c >= gridsizeX || r < 0 || c < 0) throw std::out_of_range("Index oor");

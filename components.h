@@ -51,7 +51,18 @@ namespace bs {
 		std::array<float, NUM_NEURONS> lastStepOutputs;
 	};
 	
+	struct Neighbourhood {
+		Neighbourhood(){
+			neighbours.reserve(defaultSearchRadius * defaultSearchRadius); // pi*r² ?
+			distances.reserve(defaultSearchRadius * defaultSearchRadius);
+		}
 
+		std::vector<Entity> neighbours;
+		std::vector<float> distances;
+	};
+
+
+	// components for genomes
 	struct Connection { bool valid = false;  NeuronTypes source; NeuronTypes sink; float weight; }; //zero-initialized as
 	
 	struct Adjacency { bool valid = false;  NeuronTypes neighbour{}; float weight{}; }; //zero-initialized as { false, NeuronTypes{0}, 0.0f } { false, NeuronTypes{0}, NeuronTypes{0}, 0.0f }

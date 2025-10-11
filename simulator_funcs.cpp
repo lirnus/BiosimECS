@@ -9,8 +9,8 @@
 namespace bs {
 	void spawnPixie(World* w) {
 		// create a new Pixie entity and place it on the grid
-		Entity newPixie = w->pixie_em.create();
-
+		Entity newPixie = w->pixie_em.create();								// this part until the genome creation
+																			// is shared with inheritPixie --> should I summarize as 1 function?
 		int randX;
 		int randY;
 		while (true) {
@@ -28,6 +28,8 @@ namespace bs {
 		w->brainstate.add(newPixie, BrainState{}); // empty brain 
 
 		w->fitness.add(newPixie, 1.0);
+
+		w->searchRadius.add(newPixie, defaultSearchRadius);
 
 		// create a genome:
 		w->PixieGenomes.add(newPixie, createGenome(w, newPixie));
@@ -70,6 +72,8 @@ namespace bs {
 
 		newW->fitness.add(newPixie, 1.0);
 
+		w->searchRadius.add(newPixie, defaultSearchRadius);
+
 		// last step: inherit the genome
 		newW->PixieGenomes.add(newPixie, inheritGenome(newW, newPixie, oldGenome));
 	}
@@ -87,6 +91,7 @@ namespace bs {
 
 	}
 	void eachSimStep(World* w, int gen) {
+
 		const auto& entity_list = w->PixieGenomes.get_entities();
 		for (const Entity& p : entity_list) {
 			execute_staticBrain(w, p);
@@ -96,6 +101,7 @@ namespace bs {
 			executeMove(w, p);
 		}
 		w->queueForMove.clear();
+		w->pixie_neighbourhood.clear_all();
 		 
 		//(pheromoneDecay)
 		//render simstep if correct gen

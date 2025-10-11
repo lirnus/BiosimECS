@@ -37,6 +37,7 @@ namespace bs {
 	// pixie parameters
 	static constexpr float mutationRate = 0.0; //usual value ~0.001 or 0.0001
 	static constexpr float weight_factor = 2; //range of connection weight encoded by DNA. Range is {-weight_f..+weight_f}
+	static constexpr float defaultSearchRadius = 5.; //default searchradius for pixies when interacting with environment
 
 	// analytics
 	//extern bool calc_diversity;
