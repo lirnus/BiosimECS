@@ -28,7 +28,7 @@ namespace bs {
 			w->Pos.get(p).yPos = dest_Y;
 			// move Pixie to new position
 			w->setGridCell(w->Pos.get(p), p);
-			std::cout << "pixie " << p << " moved to " << dest_Y << ", " << dest_X << "\n";
+			//std::cout << "pixie " << p << " moved to " << dest_Y << ", " << dest_X << "\n";
 		}
 
 		// reset moveUrge

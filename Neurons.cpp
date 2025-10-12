@@ -174,7 +174,7 @@ namespace bs {
 
 		float out = (cache / norming_factor) / 2 + 0.5; // centered around 0.5
 
-		std::cout << "population density pixie " << p << ": " << out << "\n";
+		//std::cout << "population density pixie " << p << ": " << out << "\n";
 		return std::clamp(out, static_cast<float>(0), static_cast<float>(1));
 	}
 

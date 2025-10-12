@@ -107,7 +107,7 @@ namespace bs {
 		//render simstep if correct gen
 	}
 	void evaluateFitness(World* w) {
-
+		funcTableSelCrit[selectionCriterium](w);
 	}
 	std::vector<Genome> select(World* w) {
 		std::vector<Genome> selected_genomes;
@@ -164,7 +164,7 @@ namespace bs {
 			nextMetagenome.clear();
 			
 			// simulate simSteps
-			newWorld_ptr->printGrid();
+			//newWorld_ptr->printGrid();
 			for (int i = 0; i < numberOfSimSteps; i++) {
 
 				generationAge = i;
@@ -177,11 +177,10 @@ namespace bs {
 			}
 			newWorld_ptr->printGrid();
 
+			// apply Selection
 			evaluateFitness(newWorld_ptr);
-			//if (!chooseParentsByFitness) { // this means that pixies should be killed before choosing pixies to reproduce
-			//	applySelectionCriteria(newWorld);
 			nextMetagenome = select(newWorld_ptr);
-			//}
+			
 			int fit_pixies = 0;
 			newWorld_ptr->fitness.for_each([&](Entity e, float c) {if (c > 0) { fit_pixies++; }; });
 			if (fit_pixies == 0) {

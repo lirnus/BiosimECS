@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <iostream>
 
 #include "Random.h"
 
@@ -18,14 +19,14 @@ namespace bs {
 	extern int numberOfGenerations;
 	extern int numberOfSimSteps;*/
 
-	static constexpr int gridsizeY = 10;
-	static constexpr int gridsizeX = 10;
-	static constexpr int numberOfGenes = 10;
-	static constexpr int numberOfPixies =5;
-	static constexpr int numberOfGenerations = 3;
-	static constexpr int numberOfSimSteps = 2;
-	/*extern std::vector<std::string> selectionCriteria;
-	extern std::string EnvironmentKey;*/
+	static constexpr int gridsizeY = 30;
+	static constexpr int gridsizeX = 30;
+	static constexpr int numberOfGenes = 4;
+	static constexpr int numberOfPixies = 200;
+	static constexpr int numberOfGenerations = 40;
+	static constexpr int numberOfSimSteps = 30;
+	static constexpr uint8_t selectionCriterium = 0; // key for SelCrit-lookup table; see enum SelCrit
+	//extern std::string EnvironmentKey;
 
 	// continuous simulation parameters
 
@@ -64,6 +65,8 @@ namespace bs {
 	extern std::string cwd_str;*/
 
 	// random engine
+	static constexpr bool deterministic = false; // switch to control if the simulation should run with a predefined random-seed
+	static constexpr int seeed = 1; // seed for deterministec behaviour
 	extern Random* randomengine;
 
 	// simStep "clock" to track the age of a generation

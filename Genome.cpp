@@ -71,22 +71,22 @@ namespace bs {
 
 		// first check if there already is a braintemplate Entity with the same DNA. if yes, skip the initialization
 		Entity clone = checkForClone(w, old_gnm.DNA);
-		if (clone != INVALID) { std::cout << "pixie " << p << " inherited a IDENTICAL genome\n"; return clone; }
+		if (clone != INVALID) { /*std::cout << "pixie " << p << " inherited a IDENTICAL genome\n";*/ return clone; }
 
 		// else create a new Entity
 		if (neuron_mut) {
 			// new topology
-			std::cout << "pixie " << p << " inherited a MISSENSE mutated genome\n";
+			//std::cout << "pixie " << p << " inherited a MISSENSE mutated genome\n";
 			return inheritGenome_Missense(w, p, possibly_mutated_DNA, old_gnm);
 		}
 		else if (weight_mut) {
 			// inherit genome with modifed bwd_adj
-			std::cout << "pixie " << p << " inherited a WEIGHT mutated genome\n";
+			//std::cout << "pixie " << p << " inherited a WEIGHT mutated genome\n";
 			return inheritGenome_Weight(w, p, possibly_mutated_DNA, old_gnm);
 		}
 		else {
 			// inherit whole genome with (new) DNA
-			std::cout << "pixie " << p << " inherited a SILENTLY mutated or UNMUTATED genome\n";
+			//std::cout << "pixie " << p << " inherited a SILENTLY mutated or UNMUTATED genome\n";
 			return inheritGenome_Silent(w, p, possibly_mutated_DNA, old_gnm);
 		}
 	}

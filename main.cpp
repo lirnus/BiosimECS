@@ -13,6 +13,8 @@ int main() {
 	auto start = std::chrono::high_resolution_clock::now();
 	
 	initFuncTable();
+	initSelectionFuncTable();
+	if (deterministic) { randomengine->engine.seed(seeed); }
 
 	/*World myWorld;
 	World* myWorld_ptr = &myWorld;
