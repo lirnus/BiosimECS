@@ -105,6 +105,9 @@ namespace bs {
 		 
 		//(pheromoneDecay)
 		//render simstep if correct gen
+		if (shouldCreateGIF(gen)) {
+			writeGIFdata(gen, w);
+		}
 	}
 	void evaluateFitness(World* w) {
 		funcTableSelCrit[selectionCriterium](w);
@@ -175,10 +178,11 @@ namespace bs {
 				//	//applySelectionCriteria(newWorld); // (only for soft selection criteria)
 				//}
 			}
-			newWorld_ptr->printGrid();
+			//newWorld_ptr->printGrid();
 
 			// apply Selection
 			evaluateFitness(newWorld_ptr);
+			//newWorld_ptr->fitness.for_each([&](Entity e, float c) { std::cout << e << " " << c << ", " << newWorld_ptr->fitness.has(e) << "\n"; });
 			nextMetagenome = select(newWorld_ptr);
 			
 			int fit_pixies = 0;
@@ -189,8 +193,9 @@ namespace bs {
 			}
 			
 			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
+		} // end for gen
 
-		}
+		renderGIFs();
 	}
 	void simulateGenerations(const std::vector<Genome>& startingMetagenome) { // overload WITH starting Metagenome. Keep function body updated!!
 

@@ -12,8 +12,9 @@ namespace bs {
 
 
 		// clamp move urges to min -1, max 1 in each dimension
-		uint8_t moveX = std::clamp(static_cast<int>(w->move_urge.get(p).moveX), -1, 1);
-		uint8_t moveY = std::clamp(static_cast<int>(w->move_urge.get(p).moveY), -1, 1);
+		int8_t moveX = std::clamp(static_cast<int>(w->move_urge.get(p).moveX), -1, 1);
+		int8_t moveY = std::clamp(static_cast<int>(w->move_urge.get(p).moveY), -1, 1);
+		//std::cout << static_cast<int>(p) << " " << static_cast<int>(moveX) << " " << static_cast<int>(moveY) << "\n";
 
 		// calculate destination
 		int dest_X = std::clamp(w->Pos.get(p).xPos + moveX, 0, gridsizeX-1);
@@ -30,6 +31,9 @@ namespace bs {
 			w->setGridCell(w->Pos.get(p), p);
 			//std::cout << "pixie " << p << " moved to " << dest_Y << ", " << dest_X << "\n";
 		}
+
+		// update facing direction
+		w->facing.get(p) = getRelAngle(moveY, moveX);
 
 		// reset moveUrge
 		w->move_urge.get(p).moveX = 0;

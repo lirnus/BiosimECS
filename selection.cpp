@@ -13,15 +13,16 @@ namespace bs {
 	void killRightHalf(World* w) {
 		// get the Pos-component of every pixie on the grid, and set their fitness to 0 if they are on the right half
 		//DEBUG:
-		int deathCount{};
+		//int deathCount{};
 
 		for (const Entity& entity : w->fitness.get_entities()) {
 
 			if (w->Pos.get(entity).xPos > gridsizeX / 2) {
-				deathCount++;
+				//deathCount++;
+				if (!w->fitness.has(entity)) { std::cerr << "joooooo hat keine fitness"; }
 				w->fitness.get(entity) = 0.0;
 			}
 		}
-		std::cout << "deathCount: " << deathCount << "\n";
+		//std::cout << "deathCount: " << deathCount << "\n";
 	}
 }

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iomanip> // for debug
 
 namespace bs {
 	World::World() : grid(gridsizeY* gridsizeX) {
@@ -57,6 +58,12 @@ namespace bs {
         for (int r = 0; r < gridsizeY; ++r) {
             for (int c = 0; c < gridsizeX; ++c) {
                 std::cout << grid[r * gridsizeX + c] << " ";
+                // Debug:
+                /*std::cout << std::fixed << std::setprecision(1);
+                if (fitness.has(grid[r * gridsizeX + c])) {
+                    std::cout << static_cast<float>(fitness.get(grid[r * gridsizeX + c])) << " ";
+                }*/
+                //else { std::cout << grid[r * gridsizeX + c] << " "; }
             }
             std::cout << "\n";
         }

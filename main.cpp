@@ -11,6 +11,9 @@ int main() {
 
 	std::cout << "program is running...\n\n";
 	auto start = std::chrono::high_resolution_clock::now();
+
+	// create new folder directory
+	bs::initFolderDir("C:/Users/ochse/Documents/STUDIUM/4. Semester/Biosim");
 	
 	initFuncTable();
 	initSelectionFuncTable();
