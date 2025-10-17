@@ -1,4 +1,4 @@
-#include "ecs_framework.h"
+//#include "ecs_framework.h"
 //#include "World.h"
 #include "analysis.h"
 #include <vector>

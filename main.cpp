@@ -11,29 +11,33 @@ int main() {
 
 	std::cout << "program is running...\n\n";
 	auto start = std::chrono::high_resolution_clock::now();
+ 
 
 	// create new folder directory
-	bs::initFolderDir("C:/Users/ochse/Documents/STUDIUM/4. Semester/Biosim");
-	
+	bs::initFolderDir("C:/Users/ochse/Documents/STUDIUM/5. Semester/Biosim v2");
+
+	// initialize function lookup-tables
 	initFuncTable();
 	initSelectionFuncTable();
 	if (deterministic) { randomengine->engine.seed(seeed); }
 
-	/*World myWorld;
-	World* myWorld_ptr = &myWorld;
+	// initialize the positions of barriers in the world
+	initBarriers();
 
-	for (int i = 0; i < numberOfPixies; i++) {
-		spawnPixie(myWorld_ptr);
-	}*/
-
-	//myWorld_ptr->printGrid();
-
+	// run the simulation
 	simulateGenerations();
-	
+
+	auto simulated = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> elapsed = simulated - start;
+	std::cout << "time elapsed after simulation finished: " << elapsed.count() << " seconds\n";
+
+	// render GIFs if told so
+	if (createGIF == "every" || createGIF == "selected" || createGIF == "last" || createGIF == "first&last") { renderGIFs(); }
+
 	
 	auto end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> elapsed = end - start;
-	std::cout << "time elapsed: " << elapsed.count() << " seconds\n";
+	elapsed = end - start;
+	std::cout << "time elapsed after rendering finished: " << elapsed.count() << " seconds\n";
 	std::cout << "program finished\n";
 
 	return 0;

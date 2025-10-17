@@ -162,7 +162,8 @@ namespace bs {
 			World newWorld; // on stack // pixie and brain Template EntityManagers are automatically created with the World
 			World* newWorld_ptr = &newWorld;
 			
-			// set environment //
+			// set environment
+			setEnvironment(newWorld_ptr);
 
 			// if first world:
 			if (gen == 1) {
@@ -205,7 +206,6 @@ namespace bs {
 			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
 		} // end for gen
 
-		//if (createGIF == "every" || createGIF == "selected" || createGIF == "last") { renderGIFs(); }
 	}
 	void simulateGenerations(const std::vector<Genome>& startingMetagenome) { // overload WITH starting Metagenome. Keep function body updated!!
 

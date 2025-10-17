@@ -20,14 +20,15 @@ namespace bs {
 	extern int numberOfGenerations;
 	extern int numberOfSimSteps;*/
 
-	static constexpr int gridsizeY = 100;
-	static constexpr int gridsizeX = 100;
+	static constexpr int gridsizeY = 30;
+	static constexpr int gridsizeX = 30;
 	static constexpr int numberOfGenes = 10;
-	static constexpr int numberOfPixies = 3000;
-	static constexpr int numberOfGenerations = 10;
-	static constexpr int numberOfSimSteps = 100;
-	static constexpr uint8_t selectionCriterium = 0; // key for SelCrit-lookup table; see enum SelCrit
-	//extern std::string EnvironmentKey;
+	static constexpr int numberOfPixies = 300;
+	static constexpr int numberOfGenerations = 40;
+	static constexpr int numberOfSimSteps = 50;
+	static constexpr uint8_t selectionCriterium = 1; // key for SelCrit-lookup table; see enum SelCrit
+	static constexpr uint8_t Barriers_Key = 1; // see environment.h enum Barriers
+	static constexpr uint8_t Interactives_Key = 1; // see environment.h enum Interactives; controls food placement etc.
 
 	// continuous simulation parameters
 
@@ -55,9 +56,9 @@ namespace bs {
 	//extern std::vector<float> survival_over_time;
 
 	// render settings
-	static constexpr std::string_view createGIF = "every"; //"none", "every", "selected" or "last"
+	static constexpr std::string_view createGIF = "first&last"; //"none", "every", "selected", "last" or "first&last"
 	static constexpr std::string_view renderMode = "pretty"; //"pretty" or "fast"
-	static constexpr int GIF_resolution = 20; //number of pixels = width of a cell
+	static constexpr int GIF_resolution = 10; //number of pixels = width of a cell
 	static constexpr int createGIFevery = 1; //generate a GIF every ... generations
 	static constexpr std::array<int, 13> createGIFfor = { numberOfGenerations, 1, 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 }; //generate a GIF for selected generations
 	static constexpr int color_variation = 20; //regulates how similar the color of two mutated lineages are

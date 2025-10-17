@@ -12,6 +12,7 @@ namespace bs {
     static constexpr int EMPTY = UINT32_MAX; // int is signed - this value will wrap around and actually be -1
     static constexpr int BARRIER = UINT32_MAX - 1;
     static constexpr int FOOD = UINT32_MAX - 2;
+    static constexpr int FLAG = UINT32_MAX - 3;
 
     // structs for different components
 

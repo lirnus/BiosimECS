@@ -1,4 +1,4 @@
-#include "Genome.h"
+#include "environment.h"
 
 #pragma once
 
@@ -7,6 +7,7 @@ namespace bs {
 
 	// enum for SelCrit? just to keep track of the number of selection criteria and insert in initFuncTable
 	enum SelCrit : uint8_t {
+		NO_SELECTION,
 		KILLRIGHTHALF,
 		NUM_SELCRIT
 	};
@@ -17,5 +18,6 @@ namespace bs {
 	void initSelectionFuncTable();
 
 	// selection functions
+	void no_selection(World* w);
 	void killRightHalf(World* w);
 }

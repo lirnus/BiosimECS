@@ -52,10 +52,14 @@ def render(object_data, barrier_data, food_data, gridsize, circleDiameter=30, sp
         draw.circle(xy=(x_point, y_point), radius=circleDiameter/7, fill=rgb_color)
     
     for barrier in barrier_data:
-        draw.rectangle([top_left, bottom_right], fill=rgb_color)
+        top_left = (barrier[1] * cellSize + spacing // 2 + 0.5, barrier[0] * cellSize + spacing // 2 + 0.5) 
+        bottom_right = (top_left[0] + circleDiameter, top_left[1] + circleDiameter)
+        draw.rectangle([top_left, bottom_right], fill=(93, 85, 85)) # grey: 0x5d5555
     
     for food in food_data:
-        draw.polygon(((top_left[0] + cellSize/2, top_left[1] + cellSize/10), (bottom_right[0],bottom_right[1]), (bottom_right[0] - cellSize, bottom_right[1])), fill=rgb_color, outline="black")                
+        top_left = (food[1] * cellSize + spacing // 2 + 0.5, food[0] * cellSize + spacing // 2 + 0.5) 
+        bottom_right = (top_left[0] + circleDiameter, top_left[1] + circleDiameter)
+        draw.polygon(((top_left[0] + cellSize/2, top_left[1] + cellSize/10), (bottom_right[0],bottom_right[1]), (bottom_right[0] - cellSize, bottom_right[1])), fill=(255, 255, 0), outline="black")                
             #sticker = Image.open("flower30x30.jpg")
             #image.paste(sticker, (top_left[0], top_left[1]))
        
@@ -100,13 +104,22 @@ def renderGenerations():
             resolution = header[2]
             selCrit = header[3]
 
+            # second line tells us the position of barriers
+            secondline = textfile.readline()
+            barrier_data = []
+            if len(secondline.strip("\n")) > 0:
+                barrier_positions = secondline.strip("\n").split(",") # positions in format y;x
+                barrier_data = [tuple(map(int, i.split(";"))) for i in barrier_positions]
+
             allLines = textfile.readlines()
 
-            #each line is one simStep = frame  #NOT FOR LONG: 3 lines = 1 simstep
-            for i, line in enumerate(allLines):
-                if i > 0:
+            #two lines make up one simtep, so range in steps of 2
+            for i in range(0, len(allLines), 2):
+                if i > 1:
+                    line1 = allLines[i]
+
                     object_data = []
-                    eachObj = line.split(",")
+                    eachObj = line1.split(",")
 
                     for obj in eachObj:                   
                         elem = obj.split(";")
@@ -121,8 +134,17 @@ def renderGenerations():
                     else:
                         death_area = None
 
-                    barrier_data = [] #for now
+                    line2 = allLines[i+1]
                     food_data = []
+                    if len(line2.strip("\n")) > 0:
+                        interactives_data = line2.split(",")
+                        for int_ in interactives_data:
+                            elem = int_.split(";")
+
+                            # int PosY, int PosX, int type
+                            data = (elem[2], (int(elem[0]), int(elem[1])))
+                            if data[0] == "-3": # -3 = FOOD in World.h
+                                food_data.append(data[1])
 
                     render(object_data, barrier_data, food_data, (int(xsize), int(ysize)), circleDiameter=int(resolution), deathArea=death_area)
 

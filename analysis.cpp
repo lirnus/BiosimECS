@@ -20,6 +20,9 @@ namespace bs {
 		else if (createGIF == "last") {
 			return gen == numberOfGenerations;
 		}
+		else if (createGIF == "first&last") {
+			return gen == 1 || gen == numberOfGenerations;
+		}
 		else { return false; }
 	}
 	void writeGIFdata(const int generation, const World* w) {
@@ -75,7 +78,15 @@ namespace bs {
 
 		// write header
 		if (file_empty) { 
-			file << gridsizeY << "," << gridsizeX << "," << GIF_resolution << "," << static_cast<int>(selectionCriterium) << "\n";
+			file << gridsizeY << ',' << gridsizeX << ',' << GIF_resolution << ',' << static_cast<int>(selectionCriterium) << '\n';
+
+			// write one line of environment positions
+			for (size_t i = 0; i < barriers.size(); i++) {
+				Position& pos = barriers[i];
+				if (i > 0) file << ',';
+				file << pos.yPos << ';' << pos.xPos;
+			}
+			file << '\n';
 		}
 
 		// write state of every pixie
@@ -83,7 +94,7 @@ namespace bs {
 		size_t inh_size = inhabitants.size();
 
 		std::string out; 
-		out.reserve(inh_size * 32); // ~30 byte per pixie
+		out.reserve(inh_size * 32 + interactives.size() * 12); // ~30 byte per pixie, 12 bites per environment
 
 		char temp[32]; // for ints
 		std::ostringstream floatBuffer; // for floats
@@ -132,12 +143,25 @@ namespace bs {
 			
 		}
 		out.push_back('\n');
+		
+		// include something for the environment 
+		for (int i = 0; i < interactives.size(); i++) {
+
+			if (i > 0) out.push_back(',');
+
+			Position& pos = interactives[i].Position;
+
+			out += std::to_string(static_cast<int>(pos.yPos));
+			out.push_back(';');
+			out += std::to_string(static_cast<int>(pos.xPos));
+			out.push_back(';');
+			out += std::to_string(interactives[i].type);
+		}
+		out.push_back('\n');
+
+		// write into file
 		file.write(out.data(), static_cast<std::streamsize>(out.size()));
 		//file << '\n';
-
-		// include something for the environment 
-		// for example, create a new line that only contains the positions of each BARRIER entity on the grid,
-		// and a new line for the positions of each FOOD. if there are none, the lines stay empty
 		
 
 		file.close();

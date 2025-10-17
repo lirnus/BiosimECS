@@ -6,10 +6,15 @@ namespace bs {
 	std::array<SelectionFunc, NUM_SELCRIT> funcTableSelCrit{};
 
 	void initSelectionFuncTable() {
+		funcTableSelCrit.fill(nullptr);
+
+		funcTableSelCrit[NO_SELECTION] = &no_selection;
 		funcTableSelCrit[KILLRIGHTHALF] = &killRightHalf;
 	}
 
 	// selection functions
+	void no_selection(World* w) {}
+
 	void killRightHalf(World* w) {
 		// get the Pos-component of every pixie on the grid, and set their fitness to 0 if they are on the right half
 		//DEBUG:
