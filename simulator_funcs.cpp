@@ -6,6 +6,8 @@
 #include <iostream>
 #include <array>
 
+#include <omp.h> // Multithread
+
 namespace bs {
 	void spawnPixie(World* w) {
 		// create a new Pixie entity and place it on the grid
@@ -97,8 +99,9 @@ namespace bs {
 	void eachSimStep(World* w, int gen, int age) {
 
 
-		// 
+		// this can be multithreaded
 		const auto& entity_list = w->PixieGenomes.get_entities();
+#pragma omp parallel for //schedule(static) / schedule(dynamic)
 		for (const Entity& p : entity_list) {
 			execute_staticBrain(w, p);
 		}
