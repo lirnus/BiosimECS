@@ -37,8 +37,9 @@ namespace bs {
 		World* w, 
 		Entity pixie
 	) {
-		w->brainstate.get(pixie).lastStepOutputs = w->brainstate.get(pixie).outputs;
-		w->brainstate.get(pixie).outputs.at(neuron) = funcTable.at(neuron)(w, pixie);
+		BrainState& bs = w->brainstate.get(pixie);
+		bs.lastStepOutputs = bs.outputs;
+		bs.outputs[neuron] = funcTable[neuron](w, pixie);
 	}
 
 	void sumAndClamp(
@@ -54,13 +55,14 @@ namespace bs {
 		for (Adjacency adj : bwd_adj.at(neuron)) {
 			if (adj.valid) { // add up all the outputs from neighbouring sources
 				// if selfInput, get value from last round
+				BrainState& bs = w->brainstate.get(p);
 				if (adj.neighbour == neuron) {
-					input_sum += w->brainstate.get(p).lastStepOutputs.at(adj.neighbour);
+					input_sum += bs.lastStepOutputs[adj.neighbour];
 				}
 				else {
 					// maybe consider a check if the value actually is set (if topology is correct, this should be the case)
-					if (w->brainstate.get(p).outputs.at(adj.neighbour) == VOID) { throw std::invalid_argument("VOID passed as input"); } // This can be cut for performance enhancement
-					input_sum += w->brainstate.get(p).outputs.at(adj.neighbour);
+					if (bs.outputs[adj.neighbour] == VOID) { throw std::invalid_argument("VOID passed as input"); } // This can be cut for performance enhancement
+					input_sum += bs.outputs.at(adj.neighbour);
 				}
 				
 			}
@@ -86,8 +88,9 @@ namespace bs {
 
 	void execute_staticBrain(World* w, Entity p) {
 		// execute topoOrder functions
-		std::vector<NeuronTypes>& topoOrder = w->genome.get(w->PixieGenomes.get(p)).topoOrder;
-		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj = w->genome.get(w->PixieGenomes.get(p)).bwd_adjacency;
+		Genome& pixie_gnm = w->genome.get(w->PixieGenomes.get(p));
+		std::vector<NeuronTypes>& topoOrder = pixie_gnm.topoOrder;
+		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj = pixie_gnm.bwd_adjacency;
 		
 		// DEBUG: ////////////////
 		/*std::cout << "topoOrder: {";

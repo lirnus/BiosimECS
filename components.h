@@ -58,6 +58,7 @@ namespace bs {
 			relAngles.reserve(defaultSearchRadius * defaultSearchRadius);
 		}
 
+		bool up_to_date = false;
 		std::vector<Entity> neighbours;
 		std::vector<float> distances;
 		std::vector<float> relAngles;

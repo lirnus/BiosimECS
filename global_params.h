@@ -20,12 +20,12 @@ namespace bs {
 	extern int numberOfGenerations;
 	extern int numberOfSimSteps;*/
 
-	static constexpr int gridsizeY = 20;
-	static constexpr int gridsizeX = 20;
-	static constexpr int numberOfGenes = 4;
-	static constexpr int numberOfPixies = 100;
-	static constexpr int numberOfGenerations = 20;
-	static constexpr int numberOfSimSteps = 20;
+	static constexpr int gridsizeY = 100;
+	static constexpr int gridsizeX = 100;
+	static constexpr int numberOfGenes = 10;
+	static constexpr int numberOfPixies = 3000;
+	static constexpr int numberOfGenerations = 10;
+	static constexpr int numberOfSimSteps = 100;
 	static constexpr uint8_t selectionCriterium = 0; // key for SelCrit-lookup table; see enum SelCrit
 	//extern std::string EnvironmentKey;
 

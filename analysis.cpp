@@ -3,6 +3,8 @@
 #include <sstream>
 #include <filesystem>
 #include <fstream>
+#include <string>
+#include <charconv>
 
 namespace bs {
 
@@ -38,6 +40,9 @@ namespace bs {
 
 			Das Python-skript kann dann den Dateinamen GIFdata_x für alle möglichen x < 10.000 oder so ausprobieren
 			(oder einfach für alle dateien im ordner: os.listdir / pathlib)
+
+
+			THIS FUNCTION CAN BE FURTHER IMPROVED BY USING STD::TO_CHARS AND A SINGLE WRITE()-CALL TO BUFFER OUTPUT STRING.
 		*/
 
 		// open (new) folder
@@ -61,7 +66,8 @@ namespace bs {
 		}
 
 		// open file
-		std::ofstream file(fileName, std::ios::out | std::ios::app); //append
+		//std::ofstream file(fileName, std::ios::out | std::ios::app); //append //COULD ALSO OPEN IN BINARY IF ONLY WRITING BYTES
+		std::ofstream file(fileName, std::ios::binary | std::ios::app); //append 
 		if (!file.is_open()) {
 			std::cout << "could not open csv file :'^(\n";
 			return;
@@ -73,21 +79,62 @@ namespace bs {
 		}
 
 		// write state of every pixie
-		std::vector<Entity> inhabitants = w->fitness.get_entities();
-		for (int i = 0; i < inhabitants.size(); i++) {
-			Entity& p = inhabitants.at(i);
+		const std::vector<Entity> inhabitants = w->fitness.get_entities();
+		size_t inh_size = inhabitants.size();
+
+		std::string out; 
+		out.reserve(inh_size * 32); // ~30 byte per pixie
+
+		char temp[32]; // for ints
+		std::ostringstream floatBuffer; // for floats
+		floatBuffer.setf(std::ios::fixed);
+		floatBuffer.precision(3);
+
+		for (size_t i = 0; i < inh_size; i++) {
+			const Entity& p = inhabitants[i];
 			// print the pixies Position (y, x), its facing direction and three Color channels
-			file << w->Pos.get(p).yPos << ";"
-				<< w->Pos.get(p).xPos << ";"
-				<< w->facing.get(p) << ";"
-				<< static_cast<int>(w->genome.get(w->PixieGenomes.get(p)).col.r) << ";"
-				<< static_cast<int>(w->genome.get(w->PixieGenomes.get(p)).col.g) << ";"
-				<< static_cast<int>(w->genome.get(w->PixieGenomes.get(p)).col.b);
-			if (i < inhabitants.size() - 1) {
-				file << ","; // pixies are separated by commata
-			}
+			const Position &cache_pos = w->Pos.get(p);
+			const float facing = w->facing.get(p);
+			const Entity gnm_index = w->PixieGenomes.get(p);
+			const Color gnm = w->genome.get(gnm_index).col;
+
+			//if (i > 0) file << ","; // pixies are separated by commata
+			if (i > 0) out.push_back(',');
+			/*file << cache_pos.yPos << ";" << cache_pos.xPos << ";"
+				<< facing << ";"
+				<< static_cast<int>(gnm.r) << ";"
+				<< static_cast<int>(gnm.g) << ";"
+				<< static_cast<int>(gnm.b);*/
+			auto res = std::to_chars(temp, temp + sizeof(temp), cache_pos.yPos);
+			out.append(temp, res.ptr);
+			out.push_back(';');
+
+			res = std::to_chars(temp, temp + sizeof(temp), cache_pos.xPos);
+			out.append(temp, res.ptr);
+			out.push_back(';');
+
+			// facing 
+			floatBuffer.str("");
+			floatBuffer.clear();
+			floatBuffer << facing;
+			out.append(floatBuffer.str()); out.push_back(';');
+
+
+			// colors (cast to int as before)
+			res = std::to_chars(temp, temp + sizeof(temp), static_cast<int>(gnm.r));
+			out.append(temp, res.ptr); out.push_back(';');
+
+			res = std::to_chars(temp, temp + sizeof(temp), static_cast<int>(gnm.g));
+			out.append(temp, res.ptr); out.push_back(';');
+
+			res = std::to_chars(temp, temp + sizeof(temp), static_cast<int>(gnm.b));
+			out.append(temp, res.ptr);
+			
 		}
-		file << "\n";
+		out.push_back('\n');
+		file.write(out.data(), static_cast<std::streamsize>(out.size()));
+		//file << '\n';
+
 		// include something for the environment 
 		// for example, create a new line that only contains the positions of each BARRIER entity on the grid,
 		// and a new line for the positions of each FOOD. if there are none, the lines stay empty

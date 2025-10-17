@@ -31,6 +31,8 @@ namespace bs {
 
 		w->searchRadius.add(newPixie, defaultSearchRadius);
 
+		w->pixie_neighbourhood.add(newPixie, Neighbourhood{});
+
 		// create a genome:
 		w->PixieGenomes.add(newPixie, createGenome(w, newPixie));
 			
@@ -74,6 +76,8 @@ namespace bs {
 
 		newW->searchRadius.add(newPixie, defaultSearchRadius);
 
+		newW->pixie_neighbourhood.add(newPixie, Neighbourhood{});
+
 		// last step: inherit the genome
 		newW->PixieGenomes.add(newPixie, inheritGenome(newW, newPixie, oldGenome));
 	}
@@ -90,8 +94,10 @@ namespace bs {
 		}
 
 	}
-	void eachSimStep(World* w, int gen) {
+	void eachSimStep(World* w, int gen, int age) {
 
+
+		// 
 		const auto& entity_list = w->PixieGenomes.get_entities();
 		for (const Entity& p : entity_list) {
 			execute_staticBrain(w, p);
@@ -101,9 +107,10 @@ namespace bs {
 			executeMove(w, p);
 		}
 		w->queueForMove.clear();
-		w->pixie_neighbourhood.clear_all();
+		w->pixie_neighbourhood.for_each([&](Entity e, Neighbourhood c) { c.up_to_date = false; });
 		 
 		//(pheromoneDecay)
+		
 		//render simstep if correct gen
 		if (shouldCreateGIF(gen)) {
 			writeGIFdata(gen, w);
@@ -170,8 +177,8 @@ namespace bs {
 			//newWorld_ptr->printGrid();
 			for (int i = 0; i < numberOfSimSteps; i++) {
 
-				generationAge = i;
-				eachSimStep(newWorld_ptr, gen);
+				//generationAge = i; // NOT THREAD SAFE
+				eachSimStep(newWorld_ptr, gen, i);
 
 				//if (fitnessUpdates == "every") {
 				//	evaluateFitness(newWorld);
@@ -195,7 +202,7 @@ namespace bs {
 			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
 		} // end for gen
 
-		renderGIFs();
+		//if (createGIF == "every" || createGIF == "selected" || createGIF == "last") { renderGIFs(); }
 	}
 	void simulateGenerations(const std::vector<Genome>& startingMetagenome) { // overload WITH starting Metagenome. Keep function body updated!!
 
@@ -241,7 +248,7 @@ namespace bs {
 			for (int i = 0; i < numberOfSimSteps; i++) {
 
 				//generationAge = i;
-				eachSimStep(newWorld_ptr, gen);
+				eachSimStep(newWorld_ptr, gen, i);
 
 				//if (fitnessUpdates == "every") {
 				//	evaluateFitness(newWorld);

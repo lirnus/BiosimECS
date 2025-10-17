@@ -43,16 +43,22 @@ namespace bs {
 	// surroundings
 	const Neighbourhood& scanNeighbourhood(World* w, const Entity& p) {
 
+		Neighbourhood& nghbhd = w->pixie_neighbourhood.get(p);
+
 		//first check if that Pixie already has an assigned neighbourhood
-		if (w->pixie_neighbourhood.has(p)) {
+		if (nghbhd.up_to_date) {
 			return w->pixie_neighbourhood.get(p);
 		}
 		//else compute from scratch
 		else {
-			Neighbourhood nghbhd;
+			nghbhd.neighbours.clear();
+			nghbhd.distances.clear();
+			nghbhd.relAngles.clear();
+			
+			Position& pos = w->Pos.get(p);
 
-			int yPos = w->Pos.get(p).yPos;
-			int xPos = w->Pos.get(p).xPos;
+			int yPos = pos.yPos;
+			int xPos = pos.xPos;
 			float searchR = w->searchRadius.get(p);
 
 			// for each gridcell in searchRadius, look for non-empty cell and if found add to neighbours, compute distance and add to distances
@@ -66,7 +72,7 @@ namespace bs {
 							if (neighbour != EMPTY) {
 								nghbhd.neighbours.push_back(neighbour);
 								nghbhd.distances.push_back(calcEuclidianDistance(c, r));
-								nghbhd.relAngles.push_back(getRelAngle(getRelativePosition(r, c, w->Pos.get(p))));
+								nghbhd.relAngles.push_back(getRelAngle(getRelativePosition(r, c, pos)));
 							}
 
 						}
@@ -74,7 +80,7 @@ namespace bs {
 
 				}
 			}
-			w->pixie_neighbourhood.add(p, nghbhd);
+			nghbhd.up_to_date = true;
 			return w->pixie_neighbourhood.get(p);
 		} // end else compute
 

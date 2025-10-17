@@ -15,7 +15,7 @@ namespace bs {
 
 	void newGeneration(World* newW); // generate genomes from scratch
 	void newGeneration(World* newW, const std::vector<Genome>& genome); // for succeeding generenations
-	void eachSimStep(World*, int gen);
+	void eachSimStep(World*, int gen, int age);
 	void evaluateFitness(World* w);
 	std::vector<Genome> select(World*);
 

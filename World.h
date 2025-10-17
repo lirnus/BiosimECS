@@ -21,23 +21,24 @@ namespace bs {
     public:
         World();
 
-        EntityManager pixie_em;
+        EntityManager pixie_em; // an EntityManager to give away entities for pixie
 
-        ComponentStorage<Position> Pos;
-        ComponentStorage<Entity> PixieGenomes; 
-        ComponentStorage<float> facing;
-        ComponentStorage<MoveUrge> move_urge;
-        ComponentStorage<BrainState> brainstate;
-        ComponentStorage<float> fitness;
-        ComponentStorage<float> searchRadius;
+        // components for pixies
+        ComponentStorage<Position> Pos; // its position (y/x)
+        ComponentStorage<Entity> PixieGenomes; // a reference to its genome entity
+        ComponentStorage<float> facing; // its facing direction
+        ComponentStorage<MoveUrge> move_urge; // values that indicate in which direction the pixie wants to move
+        ComponentStorage<BrainState> brainstate; // the in- and outputs for its little brain
+        ComponentStorage<float> fitness; // its current fitness value
+        ComponentStorage<float> searchRadius; // the radius it uses to scan its environment
 
-        ComponentStorage<Neighbourhood> pixie_neighbourhood;
+        ComponentStorage<Neighbourhood> pixie_neighbourhood; // a cache structure to save a current snapshot of its neighbourhood
 
-        std::unordered_set<Entity> queueForMove;
+        std::unordered_set<Entity> queueForMove; // pixies that indicate that they want to move land here
 
-        EntityManager braintemplates_em;
+        EntityManager braintemplates_em; // a separate EntityManager to give away entities for Brain-templates
 
-        ComponentStorage<Genome> genome;
+        ComponentStorage<Genome> genome; // a struct containing all informations of a unique genome
 
         int getGridCell(int r, int c) const;
         int getGridCell(Position& pos) const;
