@@ -6,17 +6,8 @@
 
 namespace bs {
 
-	Entity createGenome(World* w, Entity p) {
-		// create new Genome entity
-		Entity newGenome = w->braintemplates_em.create();
-		w->genome.add(newGenome, {}); // zero-initialize a Genome to later add components
-
-		// generate DNA from scratch
-		//std::array<uint32_t, numberOfGenes> genes = generateDNA();
-		w->genome.get(newGenome).DNA = generateDNA();
-
-		// skip the step of checkForClone because the propability of generating a clone from scratch is vanishingly low and we want maximum performance
-
+	void initializeBrain(World* w, Entity& newGenome) { // a function that takes in a genome entity with given DNA and handles the initialization of the brain
+		
 		// map DNA2NeuronTypes, generate connection list
 		std::array<Connection, numberOfGenes> conn_list = mapDNA2Connections(w->genome.get(newGenome).DNA);
 
@@ -31,6 +22,18 @@ namespace bs {
 
 		// calculate topology
 		calculate_topoOrder(w->genome.get(newGenome).bwd_adjacency, w->genome.get(newGenome).topoOrder);
+	}
+
+	Entity createGenome(World* w, Entity p) { // create a genome/braintemplate entity from scratch
+		// create new Genome entity
+		Entity newGenome = w->braintemplates_em.create();
+		w->genome.add(newGenome, {}); // zero-initialize a Genome to later add components
+
+		// generate DNA from scratch
+		w->genome.get(newGenome).DNA = generateDNA();
+
+		// initialize the Brain
+		initializeBrain(w, newGenome);
 
 		// new random color for that genome
 		w->genome.get(newGenome).col.r = randomengine->getRandomIntCustom(0, 255);
@@ -90,7 +93,8 @@ namespace bs {
 			return inheritGenome_Silent(w, p, possibly_mutated_DNA, old_gnm);
 		}
 	}
-	Entity inheritGenome_Missense(World* w, Entity& p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
+
+	Entity inheritGenome_Missense(World* w, Entity& p, const std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm) {
 		// basically createGenome without the generation of new DNA.
 		// create new Genome entity
 		Entity newGenome = w->braintemplates_em.create();
@@ -98,20 +102,8 @@ namespace bs {
 
 		w->genome.get(newGenome).DNA = new_dna;
 
-		// generate connection list
-		std::array<Connection, numberOfGenes> conn_list = mapDNA2Connections(w->genome.get(newGenome).DNA);
-
-		// generate fwd_adjacency list
-		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> fwd_adjacency = generate_fwdAdj(conn_list);
-
-		// check for loops and dead ends, remove
-		checkForLoops_DFS(fwd_adjacency, conn_list);
-
-		// generate bwd_adjacency list
-		w->genome.get(newGenome).bwd_adjacency = generate_bwdAdj(conn_list);
-
-		// calculate topology
-		calculate_topoOrder(w->genome.get(newGenome).bwd_adjacency, w->genome.get(newGenome).topoOrder);
+		// initialize the Brain
+		initializeBrain(w, newGenome);
 
 		// new random color for that genome (full variation scope)
 		w->genome.get(newGenome).col = generateSimilarColor(old_gnm.col, 1.0);
@@ -119,21 +111,12 @@ namespace bs {
 		// return Genome entity
 		return newGenome;
 	}
-	Entity inheritGenome_Weight(World* w, Entity& p, std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
+	Entity inheritGenome_Weight(World* w, Entity& p, std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm) {
 		// copy new DNA, copy old topoOrder and bwd_adj but update the weight for all bwd_adj connections.
 		// create new Genome entity
-		Entity newGenome = w->braintemplates_em.create();
-		w->genome.add(newGenome, {}); // zero-initialize a Genome to later add components
-
-		w->genome.get(newGenome).DNA = new_dna;
-
-		w->genome.get(newGenome).topoOrder = old_gnm.topoOrder;
-
-		w->genome.get(newGenome).col = generateSimilarColor(old_gnm.col, 0.5);
+		Entity newGenome = inheritGenome_Silent(w, p, new_dna, old_gnm);
 
 		std::array<Connection, numberOfGenes> newConns = mapDNA2Connections(new_dna);
-
-		w->genome.get(newGenome).bwd_adjacency = old_gnm.bwd_adjacency;
 
 		// update weights
 		for (Connection& conn : newConns) {
@@ -146,7 +129,7 @@ namespace bs {
 
 		return newGenome;
 	}
-	Entity inheritGenome_Silent(World* w, Entity& p, const std::array<uint32_t, numberOfGenes> new_dna, const Genome& old_gnm) {
+	Entity inheritGenome_Silent(World* w, Entity& p, const std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm) {
 		// copy new DNA, copy old bwd_adj and topoOrder.
 		// create new Genome entity
 		Entity newGenome = w->braintemplates_em.create();
@@ -162,6 +145,30 @@ namespace bs {
 
 		return newGenome;
 	}
+	Entity inheritGenome_fromDNA(World* w, Entity& p, const startingGenome& strt_gnm) {
+		// this inheritance mode is used when spawning pixies from a starting set of DNA
+		
+		// first check if there already is a braintemplate Entity with the same DNA. if yes, skip the initialization
+		Entity clone = checkForClone(w, strt_gnm.DNA);
+		if (clone != INVALID) { return clone; }
+
+		// create new Genome entity
+		Entity newGenome = w->braintemplates_em.create();
+		w->genome.add(newGenome, {}); // zero-initialize a Genome to later add components
+
+		w->genome.get(newGenome).DNA = strt_gnm.DNA;
+
+		// initialize the Brain
+		initializeBrain(w, newGenome);
+
+		// new random color for that genome (full variation scope)
+		w->genome.get(newGenome).col = strt_gnm.col;
+
+		// return Genome entity
+		return newGenome;
+	}
+
+
 
 	std::array<uint32_t, numberOfGenes> mutateDNA(const Genome& gnome) {
 		std::array<uint32_t, numberOfGenes> possiblyMutatedDNA{};
@@ -185,7 +192,6 @@ namespace bs {
 
 		return newColor;
 	}
-
 
 	std::array<uint32_t,numberOfGenes> generateDNA() {
 		std::array<uint32_t, numberOfGenes> genes_list{};

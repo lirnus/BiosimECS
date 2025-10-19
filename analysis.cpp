@@ -8,6 +8,232 @@
 
 namespace bs {
 
+	// metadata
+	void saveMetaData() {
+		std::ostringstream oss;
+		oss << bs::folder_dir << "/metadata.txt";
+		std::string fileName = oss.str();
+
+		// open
+		std::ofstream file(fileName);
+		if (!file.is_open()) {
+			std::cout << "could not open metadata file :(\n";
+			return;
+		}
+		// get current time
+		auto now = std::chrono::system_clock::now();
+		std::time_t t = std::chrono::system_clock::to_time_t(now);
+		std::tm tm;
+#ifdef _WIN32
+		localtime_s(&tm, &t);  // Windows
+#else
+		localtime_r(&t, &tm);  // Linux/Unix
+#endif
+
+		// write
+		file << "+++ Pixies Evolutionary Simulation +++\n\n";
+
+		file << "experiment from " << std::put_time(&tm, "%m.%d.%Y %H:%M") << "\n";
+
+		file << "Time elapsed during simulation: " << simulationTime << " sec. ";
+		file << "Time elapsed during rendering: " << renderingTime << " sec.\n";
+
+		file << "\nWorld parameters:\n";
+		file << "gridsizeX: "			<< gridsizeX				<< "\n";
+		file << "gridsizeY: "			<< gridsizeY				<< "\n";
+		file << "numberOfPixies: "		<< numberOfPixies			<< "\n";
+		file << "numberOfGenes: "		<< numberOfGenes			<< "\n";
+		file << "numberOfGenerations: "	<< numberOfGenerations		<< "\n";
+		file << "numberOfSimSteps: "	<< numberOfSimSteps			<< "\n";
+		file << "numberOfPixies: "		<< numberOfPixies			<< "\n";
+		file << "numberOfPixies: "		<< numberOfPixies			<< "\n";
+		file << "numberOfPixies "		<< numberOfPixies			<< "\n";
+		file << "selectionCriterium: "	<< selCrit_printable()		<< "\n";
+		file << "Barriers_Key: "		<< barriers_printable()		<< "\n";
+		file << "Interactives_Key: "	<< interactives_printable() << "\n";
+
+		file << "\nSimulator settings:\n";
+		file << "startingPopulation: "	<< (startingPopulation ? "true" : "false") << "\n";
+		file << "startingPop_path: "	<< startingPop_path			<< "\n";
+
+		file << "\nContinuous simulator settings:\n";
+
+		file << "\nPopulation settings:\n";
+		file << "blockedByOtherPixies: " << (blockedByOtherPixies ? "true" : "false") << "\n";
+		file << "pixies_per_genome: "	<< pixies_per_genome		<< "\n";
+
+		file << "\nPixie parameters:\n";
+		file << "mutationRate: "		<< mutationRate				<< "\n";
+		file << "weight_factor: "		<< weight_factor			<< "\n";
+		file << "defaultSearchRadius: "	<< defaultSearchRadius		<< "\n";
+
+		file << "\nReproducibility:\n";
+		file << "deterministic: " << (deterministic ? "true" : "false") << "\n";
+		file << "random seed: " << seeed << "\n";
+
+		file << "\nEnabled Neurons:\n";
+		for (int i = 0; i < NeuronTypes::NUM_NEURONS; i++) {
+			file << neurons_printable(i) << "\n";
+		}
+
+
+
+		// close
+		file.close();
+	}
+	std::string_view selCrit_printable() { // HAS TO BE UPDATED MANUALLY 
+		uint8_t key = selectionCriterium;
+
+		switch (key) {
+		case NO_SELECTION:
+			return "NO_SELECTION";
+		case KILLRIGHTHALF:
+			return "KILLRIGHTHALF";
+		
+		default:
+			return "n/a";
+		}
+		
+	}
+	std::string_view barriers_printable() { // HAS TO BE UPDATED MANUALLY 
+		uint8_t key = Barriers_Key;
+
+		switch (key) {
+		case NO_BARRIERS:
+			return "NO_BARRIERS";
+		case VERTICAL_BARRIER:
+			return "VERTICAL_BARRIER";
+		case HORIZONTAL_BARRIER:
+			return "HORIZONTAL_BARRIER";
+
+		default:
+			return "n/a";
+		}
+
+	}
+	std::string_view interactives_printable() { // HAS TO BE UPDATED MANUALLY 
+		uint8_t key = Interactives_Key;
+
+		switch (key) {
+		case NO_INTERACTIVES:
+			return "NO_INTERACTIVES";
+		case SPARSE_FOOD:
+			return "SPARSE_FOOD";
+		case DENSE_FOOD:
+			return "DENSE_FOOD";
+		case FOUR_FLAGS:
+			return "FOUR_FLAGS";
+
+		default:
+			return "n/a";
+		}
+
+	}
+	std::string_view neurons_printable(uint8_t neuron) { // HAS TO BE UPDATED MANUALLY 
+		uint8_t key = neuron;
+		
+		switch (key) {
+		case sX_POS:
+			return "sX_POS";
+		case sY_POS:
+			return "sY_POS";
+		case sPOP_DENSITY_FWD:
+			return "sPOP_DENSITY_FWD";
+		case sAGE:
+			return "sAGE";
+		case iINT_1:
+			return "iINT_1";
+		case iINT_2:
+			return "iINT_2";
+		case iINT_3:
+			return "iINT_3";
+		case aMOVE_W:
+			return "aMOVE_W";
+		case aMOVE_E:
+			return "aMOVE_E";
+		case aMOVE_N:
+			return "aMOVE_N";
+		case aMOVE_S:
+			return "aMOVE_S";
+
+		default:
+			return "n/a";
+		}
+
+	}
+
+
+
+	// metagenomes / startingpopulations
+	void saveMetagenome(World* w) {
+
+	}
+
+	const std::vector<startingGenome> readMetagenome() {
+
+		std::vector<startingGenome> metagenome;
+
+		std::string filepath = static_cast<std::string>(startingPop_path);
+		std::ifstream file(filepath);
+		if (!file.is_open()) {
+			std::cerr << "Error opening metagenome file!\n";
+		}
+
+		std::string line;
+
+		std::array<std::array<uint32_t, numberOfGenes>, numberOfPixies> startingPopulation;
+
+		// first line contains numberOfPixies, numberOfGenes
+		std::getline(file, line);
+		std::stringstream header(line);
+
+		std::string numPixies_str;
+		std::getline(header, numPixies_str, ',');
+		int numPixies = std::stoi(numPixies_str);
+		std::string numGenes_str;
+		std::getline(header, numGenes_str, ',');
+		int numGenes = std::stoi(numGenes_str);
+
+		assert(numPixies == numberOfPixies);
+		assert(numGenes == numberOfGenes);
+
+		// following lines contain numClones,colR,colG,colB,gene1,gene2,gene3,gene3,...
+		while (std::getline(file, line)) {
+			std::stringstream line_stream(line);
+
+			// 1. numClones
+			std::string numClones_str;
+			std::getline(line_stream, numClones_str, ',');
+			int numClones = std::stoi(numClones_str);
+
+			// 2. color channels
+			std::string colR_str;
+			std::getline(line_stream, colR_str, ',');
+			uint8_t colR = std::stoi(colR_str);
+			std::string colG_str;
+			std::getline(line_stream, colG_str, ',');
+			uint8_t colG = std::stoi(colG_str);
+			std::string colB_str;
+			std::getline(line_stream, colB_str, ',');
+			uint8_t colB = std::stoi(colB_str);
+			Color Col{ colR, colG, colB };
+
+			// all genes
+			int geneCount{};
+			std::string dna_str;
+			std::array<uint32_t, numberOfGenes> dna_array{};
+			while (std::getline(line_stream, dna_str, ',')) {
+
+				dna_array[geneCount] = std::stoi(dna_str, nullptr, 0);
+				geneCount++;
+			}
+
+			// append to metagenome
+			metagenome.push_back(startingGenome{ dna_array, Col, numClones });
+		}
+
+		return metagenome;
+	}
 
 	// GIFs
 	bool shouldCreateGIF(int gen) { // check if the current generation lies within the gens-to-be-rendered for the corresponding rendering mode

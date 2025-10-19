@@ -19,12 +19,17 @@ namespace bs {
 	std::string folder_dir = "";
 	std::string cwd_str = "";
 
+	// timekeeping
+	double simulationTime{};
+	double renderingTime{};
+	
+
 	void initFolderDir() {
 		std::string filenameHeader = "BiosimECS";
 
 		auto now = std::chrono::system_clock::now();
 		std::time_t t = std::chrono::system_clock::to_time_t(now);
-		std::tm tm{};
+		std::tm tm;
 #ifdef _WIN32
 		localtime_s(&tm, &t);  // Windows
 #else

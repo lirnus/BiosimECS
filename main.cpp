@@ -14,7 +14,7 @@ int main() {
  
 
 	// create new folder directory
-	bs::initFolderDir("C:/Users/ochse/Documents/STUDIUM/5. Semester/Biosim v2");
+	bs::initFolderDir(static_cast<std::string>(baseDir));
 
 	// initialize function lookup-tables
 	initFuncTable();
@@ -29,15 +29,19 @@ int main() {
 
 	auto simulated = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed = simulated - start;
-	std::cout << "time elapsed after simulation finished: " << elapsed.count() << " seconds\n";
+	simulationTime = elapsed.count();
+	std::cout << "time elapsed for simulation: " << simulationTime << " seconds\n";
 
 	// render GIFs if told so
 	if (createGIF == "every" || createGIF == "selected" || createGIF == "last" || createGIF == "first&last") { renderGIFs(); }
 
 	
 	auto end = std::chrono::high_resolution_clock::now();
-	elapsed = end - start;
-	std::cout << "time elapsed after rendering finished: " << elapsed.count() << " seconds\n";
+	elapsed = end - simulated;
+	renderingTime = elapsed.count();
+	std::cout << "time elapsed for rendering: " << renderingTime << " seconds\n";
+
+	saveMetaData();
 	std::cout << "program finished\n";
 
 	return 0;

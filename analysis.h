@@ -4,6 +4,13 @@
 
 namespace bs {
 
+	// metadata
+	void saveMetaData();
+	std::string_view selCrit_printable();
+	std::string_view barriers_printable();
+	std::string_view interactives_printable();
+	std::string_view neurons_printable(uint8_t neuron);
+
 	/*void calculateDiversity(World* w);
 	void calculateSurvivalrate(World* w);
 	void writeSurvivalDiversityFile();
@@ -22,8 +29,9 @@ namespace bs {
 	void renderGIFs();
 
 	// save Metageonome
-	/*void saveMetagenome(World* w, int gen);
-	std::vector< std::vector<uint32_t>> readMetagenome(std::string filename);*/
+	void saveMetagenome(World* w);
+	const std::vector<startingGenome> readMetagenome();
+
 
 	// wrapper function
 	//void analysis();

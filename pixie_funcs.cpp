@@ -21,7 +21,11 @@ namespace bs {
 		int dest_Y = std::clamp(w->Pos.get(p).yPos + moveY, 0, gridsizeY-1);
 
 		// check if free
-		if (w->getGridCell(dest_Y, dest_X) == EMPTY) {
+		bool free = false;
+		if (blockedByOtherPixies) { free = w->getGridCell(dest_Y, dest_X) == EMPTY; }
+		else { free = w->getGridCell(dest_Y, dest_X) != BARRIER; } // if blockedByPixies is not activated, only Barriers are obstacles
+
+		if (free) {
 			// clear old position on grid
 			w->setGridCell(w->Pos.get(p), EMPTY);
 			// update Position
