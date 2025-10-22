@@ -188,9 +188,17 @@ namespace bs {
 			}
 			//newWorld_ptr->printGrid();
 
+
 			// apply Selection
 			evaluateFitness(newWorld_ptr);
-			//newWorld_ptr->fitness.for_each([&](Entity e, float c) { std::cout << e << " " << c << ", " << newWorld_ptr->fitness.has(e) << "\n"; });
+
+			// if needed, save metagenome of this generation
+			if (shouldSaveMetagenome(gen)) saveMetagenome(newWorld_ptr, gen);
+
+			// if needed, save populations stats
+			if (calc_diversity_survivalrate_meanfitness) writePopulationStats(newWorld_ptr, gen);
+			
+			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
 			nextMetagenome = select(newWorld_ptr);
 			
 			int fit_pixies = 0;
@@ -200,7 +208,6 @@ namespace bs {
 				break;
 			}
 			
-			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
 		} // end for gen
 
 	}// end simulateGenerations

@@ -49,13 +49,13 @@ namespace bs {
 	// PARAMETERS ////////////////////////////////////////////////////////////////////////////////////
 
 	// world parameters
-	static constexpr int gridsizeY = 30;
-	static constexpr int gridsizeX = 30;
+	static constexpr int gridsizeY = 100;
+	static constexpr int gridsizeX = 100;
 	static constexpr int numberOfGenes = 10;
-	static constexpr int numberOfPixies = 300;
-	static constexpr int numberOfGenerations = 40;
-	static constexpr int numberOfSimSteps = 50;
-	static constexpr uint8_t selectionCriterium = NO_SELECTION; // key for SelCrit-lookup table; see enum SelCrit
+	static constexpr int numberOfPixies = 500;
+	static constexpr int numberOfGenerations = 200;
+	static constexpr int numberOfSimSteps = 70;
+	static constexpr uint8_t selectionCriterium = KILLRIGHTHALF; // key for SelCrit-lookup table; see enum SelCrit
 	static constexpr uint8_t Barriers_Key = NO_BARRIERS; // see environment.h enum Barriers
 	static constexpr uint8_t Interactives_Key = NO_INTERACTIVES; // see environment.h enum Interactives; controls food placement etc.
 
@@ -73,17 +73,15 @@ namespace bs {
 	//extern bool chooseParentsByFitness; // if True, then fitness plays a role in how likely a pixie will reproduce
 
 	// pixie parameters
-	static constexpr float mutationRate = 0.0; //usual value ~0.001 or 0.0001
+	static constexpr float mutationRate = 0.001; //usual value ~0.001 or 0.0001
 	static constexpr float weight_factor = 2; //range of connection weight encoded by DNA. Range is {-weight_f..+weight_f}
 	static constexpr float defaultSearchRadius = 5.; //default searchradius for pixies when interacting with environment
 
 	// analytics
-	//extern bool calc_diversity;
-	//extern bool calc_survivalrate;
-	//extern bool create_mullerplot; //generate mullerplot
-	//extern std::string save_metagenome; //save the metagenome: "none", "last", "every" or "selected"
-	//extern int saveMetagenomeEvery;
-	//extern std::set<int> saveMetagenomeFor;
+	static constexpr bool calc_diversity_survivalrate_meanfitness = true;
+	static constexpr std::string_view save_metagenome = "every"; //save the metagenome: "none", "last", "every" or "selected"
+	static constexpr int saveMetagenomeEvery = 1;
+	static constexpr std::array<int, 13> saveMetagenomeFor = { numberOfGenerations, 1, 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 };
 	//extern std::vector<float> diversity_over_time;
 	//extern std::vector<float> survival_over_time;
 

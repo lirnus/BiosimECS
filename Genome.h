@@ -12,6 +12,7 @@ namespace bs {
 	Entity inheritGenome_Missense(World* w, Entity& p, const std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm);
 	Entity inheritGenome_Weight(World* w, Entity& p, std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm);
 	Entity inheritGenome_Silent(World* w, Entity& p, const std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm);
+	Entity inheritGenome_Identical(World* w, Entity& p, const std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm);
 	Entity inheritGenome_fromDNA(World* w, Entity& p, const startingGenome& strt_gnm);
 
 	std::array<uint32_t, numberOfGenes> generateDNA();

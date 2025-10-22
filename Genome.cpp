@@ -50,6 +50,7 @@ namespace bs {
 		//bool silent_mut = false; // no change in connectivity or weight
 		bool weight_mut = false; // the weight of one or more connections has changed
 		bool neuron_mut = false; // a connection has changed
+		bool silent_mut = false; // a bit has changed, but not weight or connection
 
 		// compare old & new DNA
 		for (int i = 0; i < numberOfGenes; i++) {
@@ -68,7 +69,7 @@ namespace bs {
 					neuron_mut = true;
 				}
 				// if old_gene != new_gene, a silent mutation can always be ticked (because if the others apply, they override anyways)
-				//silent_mut = true;
+				silent_mut = true;
 			}
 		}
 
@@ -87,10 +88,13 @@ namespace bs {
 			//std::cout << "pixie " << p << " inherited a WEIGHT mutated genome\n";
 			return inheritGenome_Weight(w, p, possibly_mutated_DNA, old_gnm);
 		}
-		else {
+		else  if (silent_mut) {
 			// inherit whole genome with (new) DNA
 			//std::cout << "pixie " << p << " inherited a SILENTLY mutated or UNMUTATED genome\n";
 			return inheritGenome_Silent(w, p, possibly_mutated_DNA, old_gnm);
+		}
+		else {
+			return inheritGenome_Identical(w, p, possibly_mutated_DNA, old_gnm);
 		}
 	}
 
@@ -139,7 +143,23 @@ namespace bs {
 
 		w->genome.get(newGenome).topoOrder = old_gnm.topoOrder;
 
-		w->genome.get(newGenome).col = generateSimilarColor(old_gnm.col, 0.5);
+		w->genome.get(newGenome).col = generateSimilarColor(old_gnm.col, 0.3);
+
+		w->genome.get(newGenome).bwd_adjacency = old_gnm.bwd_adjacency;
+
+		return newGenome;
+	}
+	Entity inheritGenome_Identical(World* w, Entity& p, const std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm) {
+		// copy new DNA, copy old bwd_adj and topoOrder.
+		// create new Genome entity
+		Entity newGenome = w->braintemplates_em.create();
+		w->genome.add(newGenome, {}); // zero-initialize a Genome to later add components
+
+		w->genome.get(newGenome).DNA = new_dna;
+
+		w->genome.get(newGenome).topoOrder = old_gnm.topoOrder;
+
+		w->genome.get(newGenome).col = old_gnm.col;
 
 		w->genome.get(newGenome).bwd_adjacency = old_gnm.bwd_adjacency;
 

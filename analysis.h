@@ -29,10 +29,17 @@ namespace bs {
 	void renderGIFs();
 
 	// save Metageonome
-	void saveMetagenome(World* w);
+	void saveMetagenome(World* w, int gen);
+	bool shouldSaveMetagenome(int gen);
 	const std::vector<startingGenome> readMetagenome();
 
+	// population stats 
+	void writeSurvivalRates(World* w, int gen);
+	void writeDiversityIndex(World* w, int gen);
+	void writeMeanFitness(World* w, int gen);
 
-	// wrapper function
-	//void analysis();
+
+	// wrapper functions
+	void writePopulationStats(World* w, int gen);
+	void popGenAnalysis();
 }
