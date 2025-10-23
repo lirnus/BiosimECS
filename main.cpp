@@ -11,7 +11,8 @@ int main() {
 
 	std::cout << "program is running...\n\n";
 	auto start = std::chrono::high_resolution_clock::now();
- 
+	
+	bs::initParameters("simconfig.ini");
 
 	// create new folder directory
 	bs::initFolderDir(static_cast<std::string>(baseDir));

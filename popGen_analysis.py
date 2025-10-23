@@ -1,3 +1,4 @@
+from cProfile import label
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
@@ -16,6 +17,51 @@ with open("folderdir.txt") as file:
 # plot Survival, Diversity, mean Fitness
 def plotSDF():
     "plot survival, diversity, mean fitness of each generation"
+    survival_path = folder_dir + "/survivalrate.txt"
+    fitness_path = folder_dir + "/mean_fitness.txt"
+    diversity_path = folder_dir + "/diversity.txt"
+
+    survival_data = []
+    survival_gens = []
+    fitness_data = []
+    fitness_gens = []
+    diversity_data = []
+    diversity_gens = []
+
+    with open(survival_path) as file:
+        for line in file:
+            elems = line.strip("\n").split(",")
+            survival_gens.append(int(elems[0]))
+            survival_data.append(float(elems[1]))
+
+    with open(fitness_path) as file:
+        for line in file:
+            elems = line.strip("\n").split(",")
+            fitness_gens.append(int(elems[0]))
+            fitness_data.append(float(elems[1]))
+
+    with open(diversity_path) as file:
+        for line in file:
+            elems = line.strip("\n").split(",")
+            diversity_gens.append(int(elems[0]))
+            diversity_data.append(float(elems[1]))
+    
+    #plot it
+    fig, ax = plt.subplots()
+    fig.set_size_inches(20, 6)
+    ax.plot(survival_gens, survival_data, label="survival rate")
+    ax.plot(fitness_gens, fitness_data, label="mean fitness")
+    ax.plot(diversity_gens, diversity_data, label="diversity")
+
+    ax.set_title('Population Stats')
+    ax.set_xlabel('Generation')
+    ax.legend()
+
+    save_dir = folder_dir + "/pop_stats.png"
+    plt.savefig(save_dir)
+    save_dir2 = folder_dir + "/pop_stats.pdf"
+    plt.savefig(save_dir2)
+
 
 # get Lineages
 def getLineages(allLines, lineages_dict, num_currentfile):
@@ -24,18 +70,21 @@ def getLineages(allLines, lineages_dict, num_currentfile):
     for i in range(1, len(allLines)): #skip first line
         elements = allLines[i].strip("\n").split(",")
 
-        genome = tuple([int(gene, 0) for i, gene in enumerate(elements) if i > 3])
+        genome = tuple([int(gene, 0) for j, gene in enumerate(elements) if j > 3])
         
-        frequency = elements[0]
-        color = (elements[1], elements[2], elements[3])
-        generation_metagenome.append((genome, frequency, color))
+        frequency = int(elements[0])
+        color = (int(elements[1]), int(elements[2]), int(elements[3]))
+        generation_metagenome.append([genome, frequency, color])
     #print(f"generation metagenome lineages {num_currentfile}:", len(generation_metagenome))
     
     # insert the lists into a dictionary 
     for gnm, frq, col in generation_metagenome:
 
-        # change the element at num_currenfile to the frequency
-        lineages_dict[gnm][num_currentfile] = (frq, col)
+        if gnm in lineages_dict.keys(): #shouldnt happen
+            lineages_dict[gnm][num_currentfile][0] += frq
+        else:
+            # change the element at num_currenfile to the frequency
+            lineages_dict[gnm][num_currentfile] = [frq, col]
             
 # get GeneFrqs
 def getGeneFrqs(allLines, genefrqs_dict, num_currentfile):
@@ -166,7 +215,9 @@ def mullerplot(lineages_dict):
     
     # plot it
     fig, ax = plt.subplots()
+    fig.set_size_inches(20, 6)
     ax.stackplot(generations, y_frequencies, colors=y_colors) # deactivate colors=colores if mutations make graph unclear
+    #ax.set_xlim(1, )
 
     ax.set_title('Muller Plot')
     ax.set_xlabel('Generation')
@@ -181,13 +232,14 @@ def mullerplot(lineages_dict):
 def analyse():
     print("popGen analysis...")
     genefrqs_dict, lineages_dict = browseMetagenomeFiles()
-    
 
     if lineages_dict:
         mullerplot(lineages_dict)
     if genefrqs_dict:
         #print(genefrqs_dict)
         plot_GeneFrqs(genefrqs_dict)
+
+    plotSDF()
 
 generations = []
 analyse()

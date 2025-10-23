@@ -13,4 +13,5 @@ namespace bs {
 	// selection functions
 	void no_selection(World* w);
 	void killRightHalf(World* w);
+	void goLeft_Gradient(World* w);
 }

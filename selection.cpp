@@ -10,6 +10,7 @@ namespace bs {
 
 		funcTableSelCrit[NO_SELECTION] = &no_selection;
 		funcTableSelCrit[KILLRIGHTHALF] = &killRightHalf;
+		funcTableSelCrit[GOLEFT_GRADIENT] = &goLeft_Gradient;
 	}
 
 	// selection functions
@@ -29,5 +30,14 @@ namespace bs {
 			}
 		}
 		//std::cout << "deathCount: " << deathCount << "\n";
+	}
+
+	void goLeft_Gradient(World* w) {
+		for (const Entity& entity : w->fitness.get_entities()) {
+
+			if (!w->fitness.has(entity)) { std::cerr << "joooooo hat keine fitness"; }
+				
+			w->fitness.get(entity) = static_cast<float>(gridsizeX - w->Pos.get(entity).xPos) / gridsizeX;
+		}
 	}
 }

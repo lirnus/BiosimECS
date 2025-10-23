@@ -74,7 +74,7 @@ namespace bs {
 		file << "random seed: " << seeed << "\n";
 
 		file << "\n-Analysis-\n";
-		file << "calc_diversity_survivalrate_meanfitness: " << (calc_diversity_survivalrate_meanfitness ? "true" : "false") << "\n";
+		file << "calc_pop_stats: " << (calc_pop_stats ? "true" : "false") << "\n";
 		file << "save_metagenome: " << save_metagenome << " -- save the metagenome: 'none', 'last', 'first&last', 'every' or 'selected'" << "\n";
 		file << "saveMetagenomeEvery: " << saveMetagenomeEvery << "\n";
 		file << "saveMetagenomeFor: {"; 
@@ -237,14 +237,12 @@ namespace bs {
 		file.close();
 	}
 	bool shouldSaveMetagenome(int gen) { // check if the current generation lies within the gens-to-be-saved for the corresponding save_metagenome mode
+		// the first and last generation are always included
 		if (save_metagenome == "selected") {
-			return std::find(saveMetagenomeFor.begin(), saveMetagenomeFor.end(), gen) != saveMetagenomeFor.end();
+			return gen == 1 || std::find(saveMetagenomeFor.begin(), saveMetagenomeFor.end(), gen) != saveMetagenomeFor.end() || gen == numberOfGenerations;
 		}
 		else if (save_metagenome == "every") {
-			return gen % saveMetagenomeEvery == 0;
-		}
-		else if (save_metagenome == "last") {
-			return gen == numberOfGenerations;
+			return gen == 1 || gen % saveMetagenomeEvery == 0 || gen == numberOfGenerations;
 		}
 		else if (save_metagenome == "first&last") {
 			return gen == 1 || gen == numberOfGenerations;
@@ -263,7 +261,6 @@ namespace bs {
 
 		std::string line;
 
-		std::array<std::array<uint32_t, numberOfGenes>, numberOfPixies> startingPopulation;
 
 		// first line contains numberOfPixies, numberOfGenes
 		std::getline(file, line);
@@ -320,13 +317,10 @@ namespace bs {
 	// GIFs
 	bool shouldCreateGIF(int gen) { // check if the current generation lies within the gens-to-be-rendered for the corresponding rendering mode
 		if (createGIF == "selected") {
-			return std::find(createGIFfor.begin(), createGIFfor.end(), gen) != createGIFfor.end();
+			return gen == 1 || std::find(createGIFfor.begin(), createGIFfor.end(), gen) != createGIFfor.end() || gen == numberOfGenerations;
 		}
 		else if (createGIF == "every") {
-			return gen % createGIFevery == 0;
-		}
-		else if (createGIF == "last") {
-			return gen == numberOfGenerations;
+			return gen == 1 || gen % createGIFevery == 0 || gen == numberOfGenerations;
 		}
 		else if (createGIF == "first&last") {
 			return gen == 1 || gen == numberOfGenerations;

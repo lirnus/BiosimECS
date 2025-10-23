@@ -7,17 +7,117 @@
 #include <sstream>
 
 namespace bs {
-	//dynamic variables are initialized here
-
-
-	int generationAge{};
-
+	// initialize Param structs
+	WorldParams* worldParams = new bs::WorldParams();
+	SimulationParams* simParams = new bs::SimulationParams();
+	PopulationParams* popParams = new bs::PopulationParams();
+	PixieParams* pixParams = new bs:: PixieParams();
+	AnalyticsParams* analParams = new bs::AnalyticsParams();
+	RenderParams* renderParams = new bs::RenderParams();
+	BaseDir* basedir = new bs::BaseDir();
+	RngParams* rngParams = new RngParams();
+	
 	// random engine
 	Random* randomengine = new bs::Random();
 
+
+	void initParameters(const std::string& filename) {
+		// read through simconfig.ini and extract all relevant parameters
+		std::ifstream file(filename);
+		if (!file) throw std::runtime_error("Cannot open config file");
+		
+		std::string section;
+		std::string line;
+		while (std::getline(file, line)) {
+			if (line.empty() || line[0] == '#') continue; // ignore empty lines or comment lines
+			
+			if (line[0] == '[') {// new section
+				section = line;
+				continue;
+			}
+
+			auto pos = line.find('=');
+			if (pos == std::string::npos) continue;
+			std::string key = line.substr(0, pos);
+			std::string value = line.substr(pos + 1);
+			
+			// trim spaces
+			key.erase(0, key.find_first_not_of(" \t"));
+			key.erase(key.find_last_not_of(" \t") + 1);
+			value.erase(0, value.find_first_not_of(" \t"));
+			value.erase(value.find_last_not_of(" \t") + 1);
+
+			if (section == "[world parameters]") {
+				if (key == "gridsizeX") worldParams->gridSizeX = std::stoi(value);
+				else if (key == "gridsizeY") worldParams->gridSizeY = std::stoi(value);
+				else if (key == "numberOfGenes") worldParams->numberOfGenes = std::stoi(value);
+				else if (key == "numberOfPixies") worldParams->numberOfPixies = std::stoi(value);
+				else if (key == "numberOfGenerations") worldParams->numberOfGenerations = std::stoi(value);
+				else if (key == "numberOfSimSteps") worldParams->numberOfSimSteps = std::stoi(value);
+				else if (key == "selectionCriterium") worldParams->selectionCriterium = std::stoi(value);
+				else if (key == "Barriers_Key") worldParams->Barriers_Key = std::stoi(value);
+				else if (key == "Interactives_Key") worldParams->Interactives_Key = std::stoi(value);
+			}
+			else if (section == "[simulation settings]") {
+				if (key == "startingPopulation") simParams->startingPopulation = (value == "true" || value == "True" || value == "T");
+				else if (key == "startingPop_path") simParams->startingPop_path = value;
+			}
+			else if (section == "[continuous simulation parameters]") {
+
+			}
+			else if (section == "[population parameters]") {
+				if (key == "blockedByOtherPixies") popParams->blockedByOtherPixies = (value == "true" || value == "True" || value == "T");
+				else if (key == "pixies_per_genome") popParams->pixies_per_genome = std::stoi(value);
+			}
+			else if (section == "[pixie parameters]") {
+				if (key == "mutationRate") pixParams->mutationRate = std::stof(value);
+				else if (key == "weight_factor") pixParams->weight_factor = std::stof(value);
+				else if (key == "defaultSearchRadius") pixParams->defaultSearchRadius = std::stof(value);
+			}
+			else if (section == "[analytics]") {
+				if (key == "calc_pop_stats") analParams->calc_pop_stats = (value == "true" || value == "True" || value == "T");
+				else if (key == "save_metagenome") analParams->save_metagenome = value;
+				else if (key == "saveMetagenomeEvery") analParams->saveMetagenomeEvery = std::stoi(value);
+				else if (key == "saveMetagenomeFor") {
+					std::stringstream value_stream;
+					std::string gen;
+					while (std::getline(value_stream, gen, ',')) {
+						analParams->saveMetagenomeFor.push_back(std::stoi(gen));
+					}
+				}
+			}
+			else if (section == "[render settings]") {
+				if (key == "createGIF") renderParams->createGIF = value;
+				else if (key == "GIF_resolution") renderParams->GIF_resolution = std::stoi(value);
+				else if (key == "createGIFevery") renderParams->createGIFevery = std::stoi(value);
+				else if (key == "createGIFfor") {
+					std::stringstream value_stream;
+					std::string gen;
+					while (std::getline(value_stream, gen, ',')) {
+						renderParams->createGIFfor.push_back(std::stoi(gen));
+					}
+				}
+				else if (key == "color_variation") renderParams->color_variation = std::stoi(value);
+			}
+			else if (section == "[file system paths etc.]") {
+				if (key == "baseDir") basedir->baseDir = value;
+			}
+			else if (section == "[random number generator]") {
+				if (key == "deterministic") rngParams->deterministic = (value == "true" || value == "True" || value == "T");
+				else if (key == "seeed") rngParams->seeed = std::stoi(value);
+			}
+			
+		}//end of while getline
+
+	}//end of initParameters
+
+	//runtime variables are initialized here
+
+	int generationAge{};
+
 	// folder directories
-	std::string folder_dir = "";
-	std::string cwd_str = "";
+	std::string folder_dir{};
+	std::string cwd_str{};
 
 	// timekeeping
 	double simulationTime{};
