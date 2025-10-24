@@ -17,12 +17,12 @@ namespace bs {
 		//std::cout << static_cast<int>(p) << " " << static_cast<int>(moveX) << " " << static_cast<int>(moveY) << "\n";
 
 		// calculate destination
-		int dest_X = std::clamp(w->Pos.get(p).xPos + moveX, 0, gridsizeX-1);
-		int dest_Y = std::clamp(w->Pos.get(p).yPos + moveY, 0, gridsizeY-1);
+		int dest_X = std::clamp(w->Pos.get(p).xPos + moveX, 0, worldParams->gridSizeX-1);
+		int dest_Y = std::clamp(w->Pos.get(p).yPos + moveY, 0, worldParams->gridSizeY-1);
 
 		// check if free
 		bool free = false;
-		if (blockedByOtherPixies) { free = w->getGridCell(dest_Y, dest_X) == EMPTY; }
+		if (popParams->blockedByOtherPixies) { free = w->getGridCell(dest_Y, dest_X) == EMPTY; }
 		else { free = w->getGridCell(dest_Y, dest_X) != BARRIER; } // if blockedByPixies is not activated, only Barriers are obstacles
 
 		if (free) {

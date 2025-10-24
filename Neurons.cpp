@@ -43,7 +43,7 @@ namespace bs {
 	}
 
 	void sumAndClamp(
-		const std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj, 
+		const std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& bwd_adj, 
 		const NeuronTypes& neuron, 
 		World* w, 
 		Entity p
@@ -72,7 +72,7 @@ namespace bs {
 	}
 
 	void evaluate(
-		const std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj,
+		const std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& bwd_adj,
 		const NeuronTypes& neuron,
 		World* w,
 		Entity p
@@ -90,7 +90,7 @@ namespace bs {
 		// execute topoOrder functions
 		Genome& pixie_gnm = w->genome.get(w->PixieGenomes.get(p));
 		std::vector<NeuronTypes>& topoOrder = pixie_gnm.topoOrder;
-		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj = pixie_gnm.bwd_adjacency;
+		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& bwd_adj = pixie_gnm.bwd_adjacency;
 		
 		// DEBUG: ////////////////
 		/*std::cout << "topoOrder: {";
@@ -137,7 +137,7 @@ namespace bs {
 		int x_pos = w->Pos.get(p).xPos;
 
 		// divide it by the total x-size of the grid
-		return x_pos / static_cast<float>(gridsizeX);
+		return x_pos / static_cast<float>(worldParams->gridSizeX);
 
 	}
 
@@ -147,7 +147,7 @@ namespace bs {
 		int y_pos = w->Pos.get(p).yPos;
 
 		// divide it by the total x-size of the grid
-		return y_pos / static_cast<float>(gridsizeX);
+		return y_pos / static_cast<float>(worldParams->gridSizeX);
 	}
 
 	float popDensityFwd_neuronfunc(World* w, Entity p) {
@@ -182,7 +182,7 @@ namespace bs {
 	}
 
 	float age_neuronfunc(World* w, Entity p) {
-		return static_cast<float>(generationAge) / numberOfSimSteps;
+		return static_cast<float>(generationAge) / worldParams->numberOfSimSteps;
 	}
 
 	// ACTION //////////////////////////////////////

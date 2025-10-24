@@ -14,7 +14,7 @@ namespace bs {
 	PixieParams* pixParams = new bs:: PixieParams();
 	AnalyticsParams* analParams = new bs::AnalyticsParams();
 	RenderParams* renderParams = new bs::RenderParams();
-	BaseDir* basedir = new bs::BaseDir();
+	BaseDir* basedir_struct = new bs::BaseDir();
 	RngParams* rngParams = new RngParams();
 	
 	// random engine
@@ -100,7 +100,7 @@ namespace bs {
 				else if (key == "color_variation") renderParams->color_variation = std::stoi(value);
 			}
 			else if (section == "[file system paths etc.]") {
-				if (key == "baseDir") basedir->baseDir = value;
+				if (key == "baseDir") basedir_struct->baseDir = value;
 			}
 			else if (section == "[random number generator]") {
 				if (key == "deterministic") rngParams->deterministic = (value == "true" || value == "True" || value == "T");

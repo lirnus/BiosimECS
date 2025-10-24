@@ -50,7 +50,8 @@ namespace bs {
 	// PARAMETERS ////////////////////////////////////////////////////////////////////////////////////
 
 	// world parameters
-	static constexpr int gridsizeY = 100;
+	static constexpr size_t MAX_GENES = 1024;
+	/*static constexpr int gridsizeY = 100;
 	static constexpr int gridsizeX = 100;
 	static constexpr int numberOfGenes = 10;
 	static constexpr int numberOfPixies = 500;
@@ -58,7 +59,7 @@ namespace bs {
 	static constexpr int numberOfSimSteps = 70;
 	static constexpr uint8_t selectionCriterium = GOLEFT_GRADIENT; // key for SelCrit-lookup table; see enum SelCrit
 	static constexpr uint8_t Barriers_Key = NO_BARRIERS; // see environment.h enum Barriers
-	static constexpr uint8_t Interactives_Key = NO_INTERACTIVES; // see environment.h enum Interactives; controls food placement etc.
+	static constexpr uint8_t Interactives_Key = NO_INTERACTIVES; // see environment.h enum Interactives; controls food placement etc.*/
 
 	struct WorldParams {
 		int gridSizeY{ 100 };
@@ -73,8 +74,8 @@ namespace bs {
 	};
 
 	// simulation settings
-	static constexpr bool startingPopulation = false; // starting with a provided list of genomes
-	static constexpr std::string_view startingPop_path = ""; // filepath to extract genomes from
+	//static constexpr bool startingPopulation = false; // starting with a provided list of genomes
+	//static constexpr std::string_view startingPop_path = ""; // filepath to extract genomes from
 
 	struct SimulationParams {
 		bool startingPopulation{ false };
@@ -85,21 +86,21 @@ namespace bs {
 
 
 	// population parameters
-	static constexpr bool blockedByOtherPixies = true;
+	//static constexpr bool blockedByOtherPixies = true;
 	//extern bool geneticDrift;
-	static constexpr int pixies_per_genome = 1;
+	//static constexpr int pixies_per_genome = 1;
 	//extern std::string_view fitnessUpdates;
 	//extern bool chooseParentsByFitness; // if True, then fitness plays a role in how likely a pixie will reproduce
 
 	struct PopulationParams {
 		bool blockedByOtherPixies{ true };
-		int pixies_per_genome{ 1 };
+		int pixies_per_genome{ 1 }; // this value is currently no being used!
 	};
 
 	// pixie parameters
-	static constexpr float mutationRate = 0.001; //usual value ~0.001 or 0.0001
-	static constexpr float weight_factor = 2; //range of connection weight encoded by DNA. Range is {-weight_f..+weight_f}
-	static constexpr float defaultSearchRadius = 5.; //default searchradius for pixies when interacting with environment
+	//static constexpr float mutationRate = 0.001; //usual value ~0.001 or 0.0001
+	//static constexpr float weight_factor = 2; //range of connection weight encoded by DNA. Range is {-weight_f..+weight_f}
+	//static constexpr float defaultSearchRadius = 5.; //default searchradius for pixies when interacting with environment
 
 	struct PixieParams {
 		float mutationRate{ 0.001 };
@@ -108,37 +109,37 @@ namespace bs {
 	};
 
 	// analytics
-	static constexpr bool calc_pop_stats = true;
-	static constexpr std::string_view save_metagenome = "every"; //save the metagenome: "none", "first&last", "every" or "selected"
-	static constexpr int saveMetagenomeEvery = 1;
-	static constexpr std::array<int, 13> saveMetagenomeFor = { numberOfGenerations, 1, 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 };
+	//static constexpr bool calc_pop_stats = true;
+	//static constexpr std::string_view save_metagenome = "every"; //save the metagenome: "none", "first&last", "every" or "selected"
+	//static constexpr int saveMetagenomeEvery = 1;
+	//static constexpr std::array<int, 11> saveMetagenomeFor = { 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 };
 	//extern std::vector<float> diversity_over_time;
 	//extern std::vector<float> survival_over_time;
 
 	struct AnalyticsParams {
 		bool calc_pop_stats{ true };
-		std::string_view save_metagenome{ "first&last" };
+		std::string save_metagenome{ "first&last" };
 		int saveMetagenomeEvery{ 1 };
-		std::vector<int> saveMetagenomeFor{ numberOfGenerations, 1, 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 };
+		std::vector<int> saveMetagenomeFor{ 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 };
 	};
 
 	// render settings
-	static constexpr std::string_view	 createGIF = "first&last"; //"none", "every", "selected" or "first&last"
-	static constexpr int				 GIF_resolution = 10; //number of pixels = width of a cell
-	static constexpr int				 createGIFevery = 1; //generate a GIF every ... generations
-	static constexpr std::array<int, 13> createGIFfor = { numberOfGenerations, 1, 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 }; //generate a GIF for selected generations
-	static constexpr int				 color_variation = 20; //regulates how similar the color of two mutated lineages are
+	//static constexpr std::string_view	 createGIF = "first&last"; //"none", "every", "selected" or "first&last"
+	//static constexpr int				 GIF_resolution = 10; //number of pixels = width of a cell
+	//static constexpr int				 createGIFevery = 1; //generate a GIF every ... generations
+	//static constexpr std::array<int, 11> createGIFfor = { 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 }; //generate a GIF for selected generations
+	//static constexpr int				 color_variation = 20; //regulates how similar the color of two mutated lineages are
 
 	struct RenderParams {
-		std::string_view createGIF{ "first&last" };
+		std::string createGIF{ "first&last" };
 		int GIF_resolution{ 10 };
 		int createGIFevery{ 1 };
-		std::vector<int> createGIFfor{ numberOfGenerations, 1, 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 };
+		std::vector<int> createGIFfor{ 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 };
 		int color_variation{ 20 };
 	};
 
 	// file system paths etc.
-	static constexpr std::string_view baseDir = "C:/Users/ochse/Documents/STUDIUM/5. Semester/Biosim v2";
+	//static constexpr std::string_view baseDir = "C:/Users/ochse/Documents/STUDIUM/5. Semester/Biosim v2";
 	extern std::string folder_dir;
 	extern std::string cwd_str;
 	extern double simulationTime;
@@ -147,23 +148,30 @@ namespace bs {
 	void initFolderDir(std::string baseDir);
 	
 	struct BaseDir {
-		std::string_view baseDir{ "C:/Users/ochse/Documents/STUDIUM/5. Semester/Biosim v2" };
+		std::string baseDir{ "C:/Users/ochse/Documents/STUDIUM/5. Semester/Biosim v2" };
 	};
 
 
 	// random engine
-	static constexpr bool deterministic = true; // switch to control if the simulation should run with a predefined random-seed
-	static constexpr int seeed = 1; // seed for deterministic behaviour
+	//static constexpr bool deterministic = true; // switch to control if the simulation should run with a predefined random-seed
+	//static constexpr int seeed = 1; // seed for deterministic behaviour
 	extern Random* randomengine;
 
 	struct RngParams {
 		bool deterministic{ true };
-		int seeed{ 4915110531566 }; // call me ;)
+		int seeed{ 42 }; 
 	};
 
 	// simStep "clock" to track the age of a generation
 	extern int generationAge;
 
-
+	extern WorldParams* worldParams;
+	extern SimulationParams* simParams;
+	extern PopulationParams* popParams;
+	extern PixieParams* pixParams;
+	extern AnalyticsParams* analParams;
+	extern RenderParams* renderParams;
+	extern BaseDir* basedir_struct;
+	extern RngParams* rngParams;
 	void initParameters(const std::string& filename);
 }

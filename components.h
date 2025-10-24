@@ -28,9 +28,11 @@ namespace bs {
 	
 	struct Neighbourhood {
 		Neighbourhood(){
-			neighbours.reserve(defaultSearchRadius * defaultSearchRadius); // pi*r² ?
-			distances.reserve(defaultSearchRadius * defaultSearchRadius);
-			relAngles.reserve(defaultSearchRadius * defaultSearchRadius);
+			int dsr = pixParams->defaultSearchRadius;
+			int dsr_sqrd = dsr * dsr;
+			neighbours.reserve(dsr_sqrd); // pi*r² ?
+			distances.reserve(dsr_sqrd);
+			relAngles.reserve(dsr_sqrd);
 		}
 
 		bool up_to_date = false;
@@ -50,14 +52,16 @@ namespace bs {
 			topoOrder.reserve(NUM_NEURONS);
 		}
 
-		std::array<uint32_t, numberOfGenes> DNA;
+		//std::array<uint32_t, MAX_GENES> DNA; // why not a vector
+		std::vector<uint32_t> DNA;
 		Color col;
-		std::vector<NeuronTypes> topoOrder; // maybe it would be better to store NeuronFunc directly (avoid overhead lookup)
-		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> bwd_adjacency;
+		std::vector<NeuronTypes> topoOrder; 
+		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> bwd_adjacency;
 	};
 
 	struct startingGenome { // for startingPopulations with the use of readMetaGenome()
-		std::array<uint32_t, numberOfGenes> DNA;
+		//std::array<uint32_t, MAX_GENES> DNA; // why not a vector
+		std::vector<uint32_t> DNA;
 		Color col;
 		int numClones;
 	};

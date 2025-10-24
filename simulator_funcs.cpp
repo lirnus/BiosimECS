@@ -15,8 +15,8 @@ namespace bs {
 		int randX;
 		int randY;
 		while (true) {
-			randX = randomengine->getRandomIntCustom(0, gridsizeX - 1);
-			randY = randomengine->getRandomIntCustom(0, gridsizeY - 1);
+			randX = randomengine->getRandomIntCustom(0, worldParams->gridSizeX - 1);
+			randY = randomengine->getRandomIntCustom(0, worldParams->gridSizeY - 1);
 			if (w->getGridCell(randY, randX) == EMPTY) { break; }
 		}
 		w->Pos.add(newPixie, Position{ randY, randX });
@@ -30,7 +30,7 @@ namespace bs {
 
 		w->fitness.add(newPixie, 1.0);
 
-		w->searchRadius.add(newPixie, defaultSearchRadius);
+		w->searchRadius.add(newPixie, pixParams->defaultSearchRadius);
 
 		w->pixie_neighbourhood.add(newPixie, Neighbourhood{});
 	}
@@ -69,13 +69,13 @@ namespace bs {
 	}
 
 	void newGeneration(World* newW) {
-		for (int i = 0; i < numberOfPixies; i++) {
+		for (int i = 0; i < worldParams->numberOfPixies; i++) {
 			spawnPixie(newW);
 		}
 	}
 	void newGeneration(World* newW, const std::vector<Genome>& nextMetagenome) {
 		// for each genome in nextMetagenome, spawn a new pixie
-		for (int i = 0; i < numberOfPixies; i++) {
+		for (int i = 0; i < worldParams->numberOfPixies; i++) {
 			inheritPixie(newW, nextMetagenome.at(i)); // analogous to spawnPixie; but with predefined Genomes
 		}
 
@@ -83,7 +83,7 @@ namespace bs {
 	void newGeneration_fromTextfile(World* newW) {
 		const std::vector<startingGenome> startingPop = readMetagenome();
 
-		for (int i = 0; i < numberOfPixies; i++) {
+		for (int i = 0; i < worldParams->numberOfPixies; i++) {
 			inheritPixie(newW, startingPop.at(i));
 		}
 	}
@@ -113,13 +113,14 @@ namespace bs {
 		}
 	}
 	void evaluateFitness(World* w) {
-		funcTableSelCrit[selectionCriterium](w);
+		funcTableSelCrit[worldParams->selectionCriterium](w);
 	}
 	std::vector<Genome> select(World* w) {
 		std::vector<Genome> selected_genomes;
-		selected_genomes.reserve(numberOfPixies);
+		selected_genomes.reserve(worldParams->numberOfPixies);
 
-		while (selected_genomes.size() < numberOfPixies) { // this should stop when the size of numberOfPixies is reached
+		size_t numPixies = numPixies = worldParams->numberOfPixies;
+		while (selected_genomes.size() < numPixies) { // this should stop when the size of numberOfPixies is reached
 			Entity rand_Entity = w->fitness.random_entity();
 			if (w->fitness.get(rand_Entity) > randomengine->getRandom01()) {
 				Genome pixie_gnm = w->genome.get(w->PixieGenomes.get(rand_Entity)); 
@@ -133,22 +134,25 @@ namespace bs {
 
 	void simulateGenerations() { // overload with NO starting metagenome (everything gets generated from scratch)
 
+		int numGens = worldParams->numberOfGenerations;
+		int numSimSteps = worldParams->numberOfSimSteps;
+
 		// before all generations:
 
 		// check if too many pixies for grid
-		if (gridsizeX * gridsizeY < numberOfPixies) {
+		if (worldParams->gridSizeX * worldParams->gridSizeY < worldParams->numberOfPixies) {
 			std::cerr << "too many pixies for the grid!";
 		}
 
 		// Container for genomes for the next generation:
 		//ComponentStorage<Genome> nextMetagenome;
 		std::vector<Genome> nextMetagenome; 
-		nextMetagenome.reserve(numberOfPixies);
+		nextMetagenome.reserve(worldParams->numberOfPixies);
 
 
 		//std::unique_ptr<World> oldWorld = nullptr; //empty world adress // we need either a dummy world or a placeholder adress
 		// for each generation:
-		for (int gen = 1; gen <= numberOfGenerations; gen++) {
+		for (int gen = 1; gen <= numGens; gen++) {
 
 			std::cout << "generation " << gen << "\n";
 			//create new World
@@ -160,7 +164,7 @@ namespace bs {
 
 			// if first world:
 			if (gen == 1) {
-				if (startingPopulation) {
+				if (simParams->startingPopulation) {
 					//readMetagenome(newWorld_ptr, startingPop_filepath)
 				}
 				else {
@@ -176,7 +180,7 @@ namespace bs {
 			
 			// simulate simSteps
 			//newWorld_ptr->printGrid();
-			for (int i = 0; i < numberOfSimSteps; i++) {
+			for (int i = 0; i < numSimSteps; i++) {
 
 				//generationAge = i; // NOT THREAD SAFE
 				eachSimStep(newWorld_ptr, gen, i);
@@ -196,7 +200,7 @@ namespace bs {
 			if (shouldSaveMetagenome(gen)) saveMetagenome(newWorld_ptr, gen);
 
 			// if needed, save populations stats
-			if (calc_diversity_survivalrate_meanfitness) writePopulationStats(newWorld_ptr, gen);
+			if (analParams->calc_pop_stats) writePopulationStats(newWorld_ptr, gen);
 			
 			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
 			nextMetagenome = select(newWorld_ptr);

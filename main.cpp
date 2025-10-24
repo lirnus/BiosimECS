@@ -15,12 +15,12 @@ int main() {
 	bs::initParameters("simconfig.ini");
 
 	// create new folder directory
-	bs::initFolderDir(static_cast<std::string>(baseDir));
+	bs::initFolderDir(static_cast<std::string>(basedir_struct->baseDir));
 
 	// initialize function lookup-tables
 	initFuncTable();
 	initSelectionFuncTable();
-	if (deterministic) { randomengine->engine.seed(seeed); }
+	if (rngParams->deterministic) { randomengine->engine.seed(rngParams->seeed); }
 
 	// initialize the positions of barriers in the world
 	initBarriers();
@@ -34,11 +34,13 @@ int main() {
 	std::cout << "time elapsed for simulation: " << simulationTime << " seconds\n";
 
 	// render GIFs if told so
-	if (createGIF == "every" || createGIF == "selected" || createGIF == "last" || createGIF == "first&last") { 
+	std::string_view cg = renderParams->createGIF;
+	if (cg == "every" || cg == "selected" || cg == "last" || cg == "first&last") { 
 		renderGIFs(); 
 	}
 	// plot some stuff for popGen analysis (mullerplot, survival rates, etc.)
-	if (save_metagenome == "every" || save_metagenome == "selected" || save_metagenome == "last" || save_metagenome == "first&last") {
+	std::string_view sm = analParams->save_metagenome;
+	if (sm == "every" || sm == "selected" || sm == "last" || sm == "first&last") {
 		popGenAnalysis();
 	}
 

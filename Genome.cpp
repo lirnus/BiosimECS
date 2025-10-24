@@ -9,10 +9,10 @@ namespace bs {
 	void initializeBrain(World* w, Entity& newGenome) { // a function that takes in a genome entity with given DNA and handles the initialization of the brain
 		
 		// map DNA2NeuronTypes, generate connection list
-		std::array<Connection, numberOfGenes> conn_list = mapDNA2Connections(w->genome.get(newGenome).DNA);
+		std::array<Connection, MAX_GENES> conn_list = mapDNA2Connections(w->genome.get(newGenome).DNA);
 
 		// generate fwd_adjacency list
-		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> fwd_adjacency = generate_fwdAdj(conn_list);
+		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> fwd_adjacency = generate_fwdAdj(conn_list);
 
 		// check for loops and dead ends, remove
 		checkForLoops_DFS(fwd_adjacency, conn_list);
@@ -45,7 +45,7 @@ namespace bs {
 	}
 
 	Entity inheritGenome(World* w, Entity p, const Genome& old_gnm) {
-		std::array<uint32_t, numberOfGenes> possibly_mutated_DNA = mutateDNA(old_gnm);
+		std::vector<uint32_t> possibly_mutated_DNA = mutateDNA(old_gnm);
 
 		//bool silent_mut = false; // no change in connectivity or weight
 		bool weight_mut = false; // the weight of one or more connections has changed
@@ -53,7 +53,7 @@ namespace bs {
 		bool silent_mut = false; // a bit has changed, but not weight or connection
 
 		// compare old & new DNA
-		for (int i = 0; i < numberOfGenes; i++) {
+		for (int i = 0; i < worldParams->numberOfGenes; i++) {
 			uint32_t old_gene = old_gnm.DNA.at(i);
 			uint32_t new_gene = possibly_mutated_DNA.at(i);
 
@@ -98,7 +98,7 @@ namespace bs {
 		}
 	}
 
-	Entity inheritGenome_Missense(World* w, Entity& p, const std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm) {
+	Entity inheritGenome_Missense(World* w, Entity& p, const std::vector<uint32_t>& new_dna, const Genome& old_gnm) {
 		// basically createGenome without the generation of new DNA.
 		// create new Genome entity
 		Entity newGenome = w->braintemplates_em.create();
@@ -115,16 +115,17 @@ namespace bs {
 		// return Genome entity
 		return newGenome;
 	}
-	Entity inheritGenome_Weight(World* w, Entity& p, std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm) {
+	Entity inheritGenome_Weight(World* w, Entity& p, std::vector<uint32_t>& new_dna, const Genome& old_gnm) {
 		// copy new DNA, copy old topoOrder and bwd_adj but update the weight for all bwd_adj connections.
 		// create new Genome entity
 		Entity newGenome = inheritGenome_Silent(w, p, new_dna, old_gnm);
 
-		std::array<Connection, numberOfGenes> newConns = mapDNA2Connections(new_dna);
+		std::array<Connection, MAX_GENES> newConns = mapDNA2Connections(new_dna);
 
 		// update weights
 		for (Connection& conn : newConns) {
-			for (int i = 0; i < numberOfGenes; i++) {
+			size_t numGenes = worldParams->numberOfGenes;
+			for (size_t i = 0; i < numGenes; i++) {
 				if (w->genome.get(newGenome).bwd_adjacency.at(conn.sink).at(i).neighbour == conn.source) {
 					w->genome.get(newGenome).bwd_adjacency.at(conn.sink).at(i).weight = conn.weight;
 				}
@@ -133,7 +134,7 @@ namespace bs {
 
 		return newGenome;
 	}
-	Entity inheritGenome_Silent(World* w, Entity& p, const std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm) {
+	Entity inheritGenome_Silent(World* w, Entity& p, const std::vector<uint32_t>& new_dna, const Genome& old_gnm) {
 		// copy new DNA, copy old bwd_adj and topoOrder.
 		// create new Genome entity
 		Entity newGenome = w->braintemplates_em.create();
@@ -149,7 +150,7 @@ namespace bs {
 
 		return newGenome;
 	}
-	Entity inheritGenome_Identical(World* w, Entity& p, const std::array<uint32_t, numberOfGenes>& new_dna, const Genome& old_gnm) {
+	Entity inheritGenome_Identical(World* w, Entity& p, const std::vector<uint32_t>& new_dna, const Genome& old_gnm) {
 		// copy new DNA, copy old bwd_adj and topoOrder.
 		// create new Genome entity
 		Entity newGenome = w->braintemplates_em.create();
@@ -190,15 +191,17 @@ namespace bs {
 
 
 
-	std::array<uint32_t, numberOfGenes> mutateDNA(const Genome& gnome) {
-		std::array<uint32_t, numberOfGenes> possiblyMutatedDNA{};
+	std::vector<uint32_t> mutateDNA(const Genome& gnome) {
+		std::vector<uint32_t> possiblyMutatedDNA{};
+		size_t numGenes = worldParams->numberOfGenes;
+		possiblyMutatedDNA.reserve(numGenes);
 
-		for (int n = 0; n < numberOfGenes; n++) {
+		for (size_t n = 0; n < numGenes; n++) {
 			uint32_t dna_copy = gnome.DNA.at(n);
 			for (int i = 0; i < 32; i++) {
-				if (randomengine->getRandom01() < mutationRate) { dna_copy ^= (1u << i); } // bit-masking and NOT-operator
+				if (randomengine->getRandom01() < pixParams->mutationRate) { dna_copy ^= (1u << i); } // bit-masking and NOT-operator
 			}
-			possiblyMutatedDNA.at(n) = dna_copy;
+			possiblyMutatedDNA.push_back(dna_copy);
 		}
 		return possiblyMutatedDNA;
 	}
@@ -206,24 +209,27 @@ namespace bs {
 	Color generateSimilarColor(const Color& old_c, float factor) {
 		Color newColor{};
 
-		newColor.r = std::clamp(static_cast<int>(old_c.r) + randomengine->getRandomCustom(-color_variation * factor, color_variation * factor), 0, 255);
-		newColor.g = std::clamp(static_cast<int>(old_c.g) + randomengine->getRandomCustom(-color_variation * factor, color_variation * factor), 0, 255);
-		newColor.b = std::clamp(static_cast<int>(old_c.b) + randomengine->getRandomCustom(-color_variation * factor, color_variation * factor), 0, 255);
+		int cv = renderParams->color_variation;
+		newColor.r = std::clamp(static_cast<int>(old_c.r) + randomengine->getRandomCustom(-cv * factor, cv * factor), 0, 255);
+		newColor.g = std::clamp(static_cast<int>(old_c.g) + randomengine->getRandomCustom(-cv * factor, cv * factor), 0, 255);
+		newColor.b = std::clamp(static_cast<int>(old_c.b) + randomengine->getRandomCustom(-cv * factor, cv * factor), 0, 255);
 
 		return newColor;
 	}
 
-	std::array<uint32_t,numberOfGenes> generateDNA() {
-		std::array<uint32_t, numberOfGenes> genes_list{};
+	std::vector<uint32_t> generateDNA() {
+		std::vector<uint32_t> genes_list{};
+		size_t numGenes = worldParams->numberOfGenes;
+		genes_list.reserve(numGenes);
 
-		for (int i = 0; i < numberOfGenes; i++) {
-			genes_list.at(i)= randomengine->getRandom32b();
+		for (size_t i = 0; i < numGenes; i++) {
+			genes_list.push_back(randomengine->getRandom32b()); 
 		}
 
 		return genes_list;
 	}
 	
-	Entity checkForClone(World* w, std::array<uint32_t, numberOfGenes> dna) {
+	Entity checkForClone(World* w, const std::vector<uint32_t>& dna) {
 		// iterate through the genomes-components and look for potential matches
 		Entity match = INVALID;
 		for (const Entity& e : w->genome.get_entities()) {
@@ -235,11 +241,12 @@ namespace bs {
 		return match;
 	}
 
-	std::array<Connection, numberOfGenes> mapDNA2Connections(std::array<uint32_t, numberOfGenes>&  genes) {
+	std::array<Connection, MAX_GENES> mapDNA2Connections(const std::vector<uint32_t>& genes) {
 
-		std::array<Connection, numberOfGenes> conn_list{};
+		std::array<Connection, MAX_GENES> conn_list{};
 
-		for (int i = 0; i < numberOfGenes; i++) {
+		size_t numGenes = worldParams->numberOfGenes;
+		for (size_t i = 0; i < numGenes; i++) {
 			conn_list.at(i) = mapDNA2Connection_single(genes.at(i));
 		}
 
@@ -289,7 +296,7 @@ namespace bs {
 		}
 		else { throw std::out_of_range("sink Index oor"); }
 
-		conn.weight = static_cast<double>(weight * (2. * weight_factor / 65536.0f)); // range from -weight_f to +weight_f
+		conn.weight = static_cast<double>(weight * (2. * pixParams->weight_factor / 65536.0f)); // range from -weight_f to +weight_f
 
 		return conn;
 	}
@@ -300,9 +307,9 @@ namespace bs {
 		return (x & mask) >> low;
 	}
 
-	std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> generate_fwdAdj(const std::array<Connection, numberOfGenes>& conn_list) {
+	std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> generate_fwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
 
-		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> fwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
+		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> fwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
 																				   // this is done so that stack allocation is still possible
 
 		std::array<int, NUM_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
@@ -341,9 +348,11 @@ namespace bs {
 		return fwd_adj;
 	}
 
-	void checkForLoops_DFS(std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& fwd_adj, 
-		std::array<Connection, numberOfGenes>& conn_list) {
-		
+	void checkForLoops_DFS(std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& fwd_adj,
+		std::array<Connection, MAX_GENES>& conn_list) {
+
+		size_t numGenes = worldParams->numberOfGenes;
+
 		// create a temporary array to track which neurons were visited. 0 = unvisited, 1 = visiting, 2 = visited
 		std::array<int, NUM_NEURONS> visiting_status{};
 
@@ -378,7 +387,7 @@ restart:
 			//std::cout << "root: " << root << "\n";
 			if (visiting_status[root] == 2) continue; //this neuron is already fully visited
 
-			std::array<int, numberOfGenes> path_tracker{}; // tracks the Neuron indices of the currently visited path
+			std::array<int, MAX_GENES> path_tracker{}; // tracks the Neuron indices of the currently visited path
 			size_t pathDepth = 0; //path_tracker[pathDepth++] = x --> push, x = path_tracker[--pathDepth] --> pop
 
 			std::array<int, NUM_NEURONS> branch_tracker{}; // sparse set to track how many adjacencies have already been visited
@@ -388,6 +397,7 @@ restart:
 			path_tracker[pathDepth++] = root; // start at sensor neuron i
 			visiting_status[root] = 1;
 
+			
 			while (pathDepth > 0) {
 				size_t top = pathDepth - 1;
 				int currentNode = path_tracker[top]; 
@@ -395,7 +405,7 @@ restart:
 				// get next branch index for currentNode
 				int& branchIdx = branch_tracker[currentNode];
 
-				if (static_cast<size_t>(branchIdx) >= numberOfGenes) { // a neuron is only finished if all branch indices have been checked
+				if (static_cast<size_t>(branchIdx) >= numGenes) { // a neuron is only finished if all branch indices have been checked
 
 					// no more adjacencies -> finish this node
 					visiting_status[currentNode] = 2;
@@ -461,7 +471,7 @@ restart:
 		//std::cout << "checking for unrooted\n"; //DEBUG
 		// when all sensor neurons are 2, check if there are still unvisited neurons with a non-empty adjacency list.
 		for (int i = neuronClasses.at(1); i < neuronClasses.at(3); i++) {// also check action neurons to be sure 
-			for (int j = 0; j < numberOfGenes; j++) {
+			for (int j = 0; j < numGenes; j++) {
 				if (visiting_status.at(i) == 0 && fwd_adj.at(i).at(j).valid) {// if so, these are unrooted internals linking up to internals/actions which will never fire.
 
 					// remove their connections in fwd_adj AND in conn_list
@@ -497,8 +507,8 @@ restart:
 
 	}
 
-	std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> generate_bwdAdj(const std::array<Connection, numberOfGenes>& conn_list) {
-		std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> bwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
+	std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> generate_bwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
+		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> bwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
 		// this is done so that stack allocation is still possible
 
 		std::array<int, NUM_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
@@ -538,7 +548,7 @@ restart:
 		return bwd_adj;
 	}
 
-	void calculate_topoOrder(const std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS>& bwd_adj, std::vector<NeuronTypes>& topoOrder) {
+	void calculate_topoOrder(const std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& bwd_adj, std::vector<NeuronTypes>& topoOrder) {
 
 		/*
 		* Do a BFS (Breadth-First search) through the backwards adjacency list.
@@ -551,8 +561,8 @@ restart:
 		* The array BACKWARDS and if a neruon is valid, push it to the topoOrder vector.
 		*/
 
-		std::array<NeuronTypes, numberOfGenes * 3> bfs_queue{};
-		std::array<bool, numberOfGenes * 3> track_validity{};
+		std::array<NeuronTypes, MAX_GENES * 2> bfs_queue{};
+		std::array<bool, MAX_GENES * 2> track_validity{};
 
 		int next_free_index = 0;
 		int current_step = 0;
@@ -622,7 +632,8 @@ restart:
 		assert(sum <= NUM_NEURONS);
 
 		//now step through the array in reverse order and push to topoOrder
-		for (int i = numberOfGenes * 3 - 1; i >= 0; i--) {
+		int numGenes = worldParams->numberOfGenes;
+		for (int i = numGenes * 3 - 1; i >= 0; i--) {
 			if (track_validity.at(i)) { // if still valid
 
 				topoOrder.push_back(bfs_queue.at(i));
@@ -644,7 +655,7 @@ restart:
 	}
 
 
-	void delete_connection(std::array<std::array<Adjacency, numberOfGenes>, NUM_NEURONS> &fwd_adj, std::array<Connection, numberOfGenes> &conn_list, int source, int sink) { // find and delete any connections with matching sources and sinks
+	void delete_connection(std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> &fwd_adj, std::array<Connection, MAX_GENES> &conn_list, int source, int sink) { // find and delete any connections with matching sources and sinks
 		for (Connection& conn : conn_list) {
 			if (conn.source == source) {
 				if (conn.sink == sink) {

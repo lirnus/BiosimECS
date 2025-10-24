@@ -40,55 +40,52 @@ namespace bs {
 		file << "Time elapsed during rendering: " << renderingTime << " sec.\n";
 
 		file << "\n-World parameters-\n";
-		file << "gridsizeX: "			<< gridsizeX				<< "\n";
-		file << "gridsizeY: "			<< gridsizeY				<< "\n";
-		file << "numberOfPixies: "		<< numberOfPixies			<< "\n";
-		file << "numberOfGenes: "		<< numberOfGenes			<< "\n";
-		file << "numberOfGenerations: "	<< numberOfGenerations		<< "\n";
-		file << "numberOfSimSteps: "	<< numberOfSimSteps			<< "\n";
-		file << "numberOfPixies: "		<< numberOfPixies			<< "\n";
-		file << "numberOfPixies: "		<< numberOfPixies			<< "\n";
-		file << "numberOfPixies "		<< numberOfPixies			<< "\n";
+		file << "gridsizeX: "			<< worldParams->gridSizeX				<< "\n";
+		file << "gridsizeY: "			<< worldParams->gridSizeY				<< "\n";
+		file << "numberOfPixies: "		<< worldParams->numberOfPixies			<< "\n";
+		file << "numberOfGenes: "		<< worldParams->numberOfGenes			<< "\n";
+		file << "numberOfGenerations: "	<< worldParams->numberOfGenerations		<< "\n";
+		file << "numberOfSimSteps: "	<< worldParams->numberOfSimSteps			<< "\n";
 		file << "selectionCriterium: "	<< selCrit_printable()		<< "\n";
 		file << "Barriers_Key: "		<< barriers_printable()		<< "\n";
 		file << "Interactives_Key: "	<< interactives_printable() << "\n";
 
 		file << "\n-Simulator settings-\n";
-		file << "startingPopulation: "	<< (startingPopulation ? "true" : "false") << "\n";
-		file << "startingPop_path: "	<< startingPop_path			<< "\n";
+		file << "startingPopulation: "	<< (simParams->startingPopulation ? "true" : "false") << "\n";
+		file << "startingPop_path: "	<< simParams->startingPop_path			<< "\n";
 
 		file << "\n-Continuous simulator settings-\n";
 		// n/a
 
 		file << "\n-Population settings-\n";
-		file << "blockedByOtherPixies: " << (blockedByOtherPixies ? "true" : "false") << "\n";
-		file << "pixies_per_genome: "	<< pixies_per_genome		<< "\n";
+		file << "blockedByOtherPixies: " << (popParams->blockedByOtherPixies ? "true" : "false") << "\n";
+		file << "pixies_per_genome: "	<< popParams->pixies_per_genome		<< "\n";
 
 		file << "\n-Pixie parameters-\n";
-		file << "mutationRate: "		<< mutationRate				<< "\n";
-		file << "weight_factor: "		<< weight_factor			<< "\n";
-		file << "defaultSearchRadius: "	<< defaultSearchRadius		<< "\n";
+		file << "mutationRate: "		<< pixParams->mutationRate				<< "\n";
+		file << "weight_factor: "		<< pixParams->weight_factor			<< "\n";
+		file << "defaultSearchRadius: "	<< pixParams->defaultSearchRadius		<< "\n";
 
 		file << "\n-Reproducibility-\n";
-		file << "deterministic: " << (deterministic ? "true" : "false") << "\n";
-		file << "random seed: " << seeed << "\n";
+		file << "deterministic: " << (rngParams->deterministic ? "true" : "false") << "\n";
+		file << "random seed: " << rngParams->seeed << "\n";
 
 		file << "\n-Analysis-\n";
-		file << "calc_pop_stats: " << (calc_pop_stats ? "true" : "false") << "\n";
-		file << "save_metagenome: " << save_metagenome << " -- save the metagenome: 'none', 'last', 'first&last', 'every' or 'selected'" << "\n";
-		file << "saveMetagenomeEvery: " << saveMetagenomeEvery << "\n";
+		file << "calc_pop_stats: " << (analParams->calc_pop_stats ? "true" : "false") << "\n";
+		file << "save_metagenome: " << analParams->save_metagenome << " -- save the metagenome: 'none', 'last', 'first&last', 'every' or 'selected'" << "\n";
+		file << "saveMetagenomeEvery: " << analParams->saveMetagenomeEvery << "\n";
 		file << "saveMetagenomeFor: {"; 
-		for (int i : saveMetagenomeFor) { file << " " << i << ","; }
+		for (int i : analParams->saveMetagenomeFor) { file << " " << i << ","; }
 		file << " }\n";
 
 		file << "\n-Render Settings-\n";
-		file << "createGIF: " << createGIF << " -- render mode: 'none', 'last', 'first&last', 'every' or 'selected'" << "\n";
-		file << "GIF_resolution: " << GIF_resolution << "\n";
-		file << "createGIFevery: " << createGIFevery << "\n";
+		file << "createGIF: " << renderParams->createGIF << " -- render mode: 'none', 'last', 'first&last', 'every' or 'selected'" << "\n";
+		file << "GIF_resolution: " << renderParams->GIF_resolution << "\n";
+		file << "createGIFevery: " << renderParams->createGIFevery << "\n";
 		file << "createGIFfor: {";
-		for (int i : createGIFfor) { file << " " << i << ","; }
+		for (int i : renderParams->createGIFfor) { file << " " << i << ","; }
 		file << " }\n";
-		file << "color_variation: " << color_variation << "\n";
+		file << "color_variation: " << renderParams->color_variation << "\n";
 
 		file << "\nEnabled Neurons:\n";
 		for (int i = 0; i < NeuronTypes::NUM_NEURONS; i++) {
@@ -101,21 +98,22 @@ namespace bs {
 		file.close();
 	}
 	std::string_view selCrit_printable() { // HAS TO BE UPDATED MANUALLY 
-		uint8_t key = selectionCriterium;
+		uint8_t key = worldParams->selectionCriterium;
 
 		switch (key) {
 		case NO_SELECTION:
 			return "NO_SELECTION";
 		case KILLRIGHTHALF:
 			return "KILLRIGHTHALF";
-		
+		case GOLEFT_GRADIENT:
+			return "GOLEFT_GRADIENT";
 		default:
 			return "n/a";
 		}
 		
 	}
 	std::string_view barriers_printable() { // HAS TO BE UPDATED MANUALLY 
-		uint8_t key = Barriers_Key;
+		uint8_t key = worldParams->Barriers_Key;
 
 		switch (key) {
 		case NO_BARRIERS:
@@ -131,7 +129,7 @@ namespace bs {
 
 	}
 	std::string_view interactives_printable() { // HAS TO BE UPDATED MANUALLY 
-		uint8_t key = Interactives_Key;
+		uint8_t key = worldParams->Interactives_Key;
 
 		switch (key) {
 		case NO_INTERACTIVES:
@@ -192,7 +190,7 @@ namespace bs {
 		std::filesystem::create_directory(folderPath);
 
 		// calculate number of digits for numberOfGenerations
-		int digits = floor(log10(numberOfGenerations)) + 1;
+		int digits = floor(log10(worldParams->numberOfGenerations)) + 1;
 		std::ostringstream generation;
 		generation << std::setw(digits) << std::setfill('0') << gen;
 
@@ -208,7 +206,7 @@ namespace bs {
 		}
 
 		// write header
-		file << numberOfPixies << ',' << numberOfGenes << '\n';
+		file << worldParams->numberOfPixies << ',' << worldParams->numberOfGenes << '\n';
 
 		// write genomes
 		
@@ -238,14 +236,18 @@ namespace bs {
 	}
 	bool shouldSaveMetagenome(int gen) { // check if the current generation lies within the gens-to-be-saved for the corresponding save_metagenome mode
 		// the first and last generation are always included
-		if (save_metagenome == "selected") {
-			return gen == 1 || std::find(saveMetagenomeFor.begin(), saveMetagenomeFor.end(), gen) != saveMetagenomeFor.end() || gen == numberOfGenerations;
+		int numGens = worldParams->numberOfGenerations;
+		std::string& sm = analParams->save_metagenome;
+		int smEvery = analParams->saveMetagenomeEvery;
+		std::vector<int>& smFor = analParams->saveMetagenomeFor;
+		if (sm == "selected") {
+			return gen == 1 || std::find(smFor.begin(), smFor.end(), gen) != smFor.end() || gen == numGens;
 		}
-		else if (save_metagenome == "every") {
-			return gen == 1 || gen % saveMetagenomeEvery == 0 || gen == numberOfGenerations;
+		else if (sm == "every") {
+			return gen == 1 || gen % smEvery == 0 || gen == numGens;
 		}
-		else if (save_metagenome == "first&last") {
-			return gen == 1 || gen == numberOfGenerations;
+		else if (sm == "first&last") {
+			return gen == 1 || gen == numGens;
 		}
 		else { return false; }
 	}
@@ -253,7 +255,7 @@ namespace bs {
 
 		std::vector<startingGenome> metagenome;
 
-		std::string filepath = static_cast<std::string>(startingPop_path);
+		std::string filepath = static_cast<std::string>(simParams->startingPop_path);
 		std::ifstream file(filepath);
 		if (!file.is_open()) {
 			std::cerr << "Error opening metagenome file!\n";
@@ -271,10 +273,10 @@ namespace bs {
 		int numPixies = std::stoi(numPixies_str);
 		std::string numGenes_str;
 		std::getline(header, numGenes_str, ',');
-		int numGenes = std::stoi(numGenes_str);
+		const int numGenes = std::stoi(numGenes_str);
 
-		assert(numPixies == numberOfPixies);
-		assert(numGenes == numberOfGenes);
+		assert(numPixies == worldParams->numberOfPixies);
+		assert(numGenes == worldParams->numberOfGenes);
 
 		// following lines contain numClones,colR,colG,colB,gene1,gene2,gene3,gene3,...
 		while (std::getline(file, line)) {
@@ -300,7 +302,9 @@ namespace bs {
 			// all genes
 			int geneCount{};
 			std::string dna_str;
-			std::array<uint32_t, numberOfGenes> dna_array{};
+			//std::array<uint32_t, MAX_GENES> dna_array{};
+			std::vector<uint32_t> dna_array{};
+			dna_array.reserve(numGenes);
 			while (std::getline(line_stream, dna_str, ',')) {
 
 				dna_array[geneCount] = std::stol(dna_str, nullptr, 0);
@@ -316,14 +320,18 @@ namespace bs {
 
 	// GIFs
 	bool shouldCreateGIF(int gen) { // check if the current generation lies within the gens-to-be-rendered for the corresponding rendering mode
-		if (createGIF == "selected") {
-			return gen == 1 || std::find(createGIFfor.begin(), createGIFfor.end(), gen) != createGIFfor.end() || gen == numberOfGenerations;
+		int numGens = worldParams->numberOfGenerations;
+		std::string& cg = renderParams->createGIF;
+		int cgEvery = renderParams->createGIFevery;
+		std::vector<int>& cgFor = renderParams->createGIFfor;
+		if (cg == "selected") {
+			return gen == 1 || std::find(cgFor.begin(), cgFor.end(), gen) != cgFor.end() || gen == numGens;
 		}
-		else if (createGIF == "every") {
-			return gen == 1 || gen % createGIFevery == 0 || gen == numberOfGenerations;
+		else if (cg == "every") {
+			return gen == 1 || gen % cgEvery == 0 || gen == numGens;
 		}
-		else if (createGIF == "first&last") {
-			return gen == 1 || gen == numberOfGenerations;
+		else if (cg == "first&last") {
+			return gen == 1 || gen == numGens;
 		}
 		else { return false; }
 	}
@@ -380,7 +388,7 @@ namespace bs {
 
 		// write header
 		if (file_empty) { 
-			file << gridsizeY << ',' << gridsizeX << ',' << GIF_resolution << ',' << static_cast<int>(selectionCriterium) << '\n';
+			file << worldParams->gridSizeY << ',' << worldParams->gridSizeX << ',' << renderParams->GIF_resolution << ',' << static_cast<int>(worldParams->selectionCriterium) << '\n';
 
 			// write one line of environment positions
 			for (size_t i = 0; i < barriers.size(); i++) {
@@ -481,7 +489,7 @@ namespace bs {
 		size_t survivor_count{};
 		w->fitness.for_each([&](Entity p, float c) {if (c > 0) survivor_count++; });
 
-		float survivalRate = static_cast<float>(survivor_count) / numberOfPixies;
+		float survivalRate = static_cast<float>(survivor_count) / worldParams->numberOfPixies;
 
 		// open textfile
 		std::ostringstream oss;
@@ -506,7 +514,7 @@ namespace bs {
 		// calculate diversity
 		size_t genome_count = w->genome.size();
 
-		float diversity = static_cast<float>(genome_count) / numberOfPixies;
+		float diversity = static_cast<float>(genome_count) / worldParams->numberOfPixies;
 
 		// open textfile
 		std::ostringstream oss;
@@ -532,7 +540,7 @@ namespace bs {
 		float summed_fitness{};
 		w->fitness.for_each([&](Entity p, float c) { summed_fitness += c; });
 
-		float mean_fitness = summed_fitness / numberOfPixies;
+		float mean_fitness = summed_fitness / worldParams->numberOfPixies;
 
 		// open textfile
 		std::ostringstream oss;

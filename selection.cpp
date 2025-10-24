@@ -20,10 +20,10 @@ namespace bs {
 		// get the Pos-component of every pixie on the grid, and set their fitness to 0 if they are on the right half
 		//DEBUG:
 		//int deathCount{};
-
+		int gsX_2 = worldParams->gridSizeX / 2;
 		for (const Entity& entity : w->fitness.get_entities()) {
 
-			if (w->Pos.get(entity).xPos > gridsizeX / 2) {
+			if (w->Pos.get(entity).xPos > gsX_2) {
 				//deathCount++;
 				if (!w->fitness.has(entity)) { std::cerr << "joooooo hat keine fitness"; }
 				w->fitness.get(entity) = 0.0;
@@ -33,11 +33,12 @@ namespace bs {
 	}
 
 	void goLeft_Gradient(World* w) {
+		int gsX = worldParams->gridSizeX;
 		for (const Entity& entity : w->fitness.get_entities()) {
 
 			if (!w->fitness.has(entity)) { std::cerr << "joooooo hat keine fitness"; }
 				
-			w->fitness.get(entity) = static_cast<float>(gridsizeX - w->Pos.get(entity).xPos) / gridsizeX;
+			w->fitness.get(entity) = static_cast<float>(gsX - w->Pos.get(entity).xPos) / gsX;
 		}
 	}
 }

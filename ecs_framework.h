@@ -24,9 +24,9 @@ namespace bs {
 	class ComponentStorage {
 	public:
 		ComponentStorage() {
-			entity_to_index.assign(numberOfPixies, INVALID); // set the size of entity_to_index to numPixies to prevent reallocation
-			entities.reserve(numberOfPixies);
-			components.reserve(numberOfPixies);
+			entity_to_index.assign(worldParams->numberOfPixies, INVALID); // set the size of entity_to_index to numPixies to prevent reallocation
+			entities.reserve(worldParams->numberOfPixies);
+			components.reserve(worldParams->numberOfPixies);
 		}
 
 		void add(Entity e, T comp) {
