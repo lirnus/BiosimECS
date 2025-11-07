@@ -35,12 +35,28 @@ Thirdly, there is a mode of *"continuous"* simulation, where Pixies can reproduc
 The simulation realizes concepts like fitness, mutation, gene drift, adaptation, migration, sexual reproduction etc.<br>
 Applied to population genetics, we can study the effect of these concepts on adaptation and mean fitness of a population. With the right analysis, we can extract single gene fitness values, draw fitness landscapes or compute gene epistasis effects.
 
-### Experimental and Analytical features
+## Experimental and Analytical features
 The Biosim has multiple features that enable a highly controlled experimental setup, detailed analyis and maximum reproducibility.<br>
+
+#### Setup features:
+- All parameters are set thorugh a textfile called simconfig.ini ; the metadata including all set parameters is saved and printed for every simulation run
+- A random seed can be set at the start of the simulation to guarantee reproducible results
+- The *metagenome* of a previously simulated generation can be fed back into the program as a starting population (through this, you can also simulate **clonal** populations of "established"(=already adapted) populations)
+- single Neurons can be manually dis- or enabled to reduce or increase complexity in behaviour
+- different environments (grids with obstacles, dispersion of food) can be chosen through a key in the simconfig textfile
+
 #### Analysis features:
 - The *metagenome* of each generation can be saved in a textfile, which allows for analysis on a population genetics level (see *Gene Frequencies*, *Mullerplot*) and visualization of Pixie brains
 - The positions and movements of Pixies can be saved to render GIFs (as shown above)
 - The survival rate or rather the mean fitness and the approximate diversity of a population can be saved and rendered
+
+#### Gallery
+Collection of example plots from different simulation runs, illustrating the kind of data analysis that can be done
+<p align="center">
+    <img width="640" height="235" alt="pixiebrain2" src="https://github.com/user-attachments/assets/75125828-4705-4676-9f91-709007b38d13" />
+    <br>
+    <em>Visualization of a single Pixie brain (only neurons with connections are plotted)</em>
+</p>
 <p align="center">
     <img width="640" height="480" alt="survival_diversity_plot" src="https://github.com/user-attachments/assets/18bc0b9f-8bc9-4e0d-920a-91da0b633751" />
     <br>
@@ -51,15 +67,8 @@ The Biosim has multiple features that enable a highly controlled experimental se
     <br>
     <em>A "Mullerplot" of one simulation run, showing which strands are successful at which times</em>
 </p>
-
 <p align="center">
-    <img width="1128" height="415" alt="pixiebrain2" src="https://github.com/user-attachments/assets/75125828-4705-4676-9f91-709007b38d13" />
+    <img width="640" height="480" alt="gene_frequencies" src="https://github.com/user-attachments/assets/099abca2-b5a1-4220-bdf0-43399887b86c" />
     <br>
-    <em>Visualization of a single Pixie brain (only neurons with connections are plotted)</em>
+    <em>Gene Frequencies (=abundance in the population) plotted for every gene. Here you can clearly see which genes spread in the population (ascending lines), which genes lie on the same genome (parallel lines) and which genes are sorted out when a fitter variant arises through mutation (line dipping from a bundle of parallel lines).</em>
 </p>
-
-#### Setup features:
-- A random seed can be set at the start of the simulation to guarantee reproducible results
-- The *metagenome* of a previously simulated generation can be fed back into the program as a starting population (through this, you can simulate clonal populations of "established"(=already adapted) Pixies)
-- single Neurons can be manually dis- or enabled to reduce or increase complexity in behaviour
-- different environments (grids with obstacles, dispersion of food) can be chosen by a key in the simconfig textfile
