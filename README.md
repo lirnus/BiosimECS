@@ -32,7 +32,17 @@ Secondly, there is a *"growing"* mode where Pixies duplicate live during a gener
 Thirdly, there is a mode of *"continuous"* simulation, where Pixies can reproduce live during the simulation, but also die off after a certain amount of time. Here, a stable population size should arise after a while, dependent on the availability of resources like food and space. Here, we can also introduce "soft" selection criteria that shorten the lifespan of certain individuals or prolong the ones of others. In this setting, with the right simulation parameters, we can maybe experience the formation of a small ecosystem and witness interspecies interactions.<br>
 
 #### Pixie Brains
-As mentioned above, the behaviour of Pixies is randomized at the beginning of a simulation. But this doesn't mean the behaviour of one single Pixie is random; rather it is determined directly by its genome, which is in turn randomly generated. A Pixie genome is a collection of 32bit-integer genes, of which each one encodes for a connection in the brain
+As mentioned above, the behaviour of Pixies is randomized at the beginning of a simulation. But this doesn't mean the behaviour of one single Pixie is random; rather it is determined directly by its genome, which is in turn randomly generated. A Pixie genome is a collection of 32bit-integer genes, of which each one encodes for a connection in the brain (between two neurons). The first 8 bits code for the source neuron, the second 8 bits for the sink neuron and the last 16 bits encode a weight factor of that connection. <br>
+There is a large set of Neurons that Pixies can "choose" from when forming their brain, but with a limited number of genes (often only 5-20 genes), only some of them actually get connected to others. Not connected neurons can never fire and are thus not part of the brain. <br>
+Brains get evaluated every simulator step, so that a single Pixie has at most n_simStep of actions it can conduct in each generation. <br>
+Gene 0xf0ccac1a could for example encode a connection of sensor neuron "nextBarrier", which outputs high values when facing a closeby border, with "turnR", causing the Pixie to turn right. The weight would be positive, which means that high output values of nextBarrier make the activation of turnR more likely for that simStep.<br>
+Here is an example of what a Pixie brain can look like: <br>
+<p align="center">
+    <img width="640" height="235" alt="pixiebrain2" src="https://github.com/user-attachments/assets/75125828-4705-4676-9f91-709007b38d13" />
+    <br>
+    <em>Visualization of a example Pixie brain. Only neurons with connections are plotted, green lines show positive weights (excitatory), red lines negative weights (inhibitory), and the line thickness resembles the weight factor. </em>
+</p>
+Note that this Pixie was selected for eating food to have a higher reproduction chance, so the strong excitatory connection of nutritionDensity (on the top right) with eatFood (on the bottom left) is probably crucial for that Pixies survival, while the weak inhibitory connection of randomOutput with setOscillatorPeriod is probably not very important.
 
 ### Effects to be studied
 The simulation realizes concepts like fitness, mutation, gene drift, adaptation, migration, sexual reproduction etc.<br>
@@ -55,11 +65,6 @@ The Biosim has multiple features that enable a highly controlled experimental se
 
 #### Gallery
 Collection of example plots from different simulation runs, illustrating the kind of data analysis that can be done
-<p align="center">
-    <img width="640" height="235" alt="pixiebrain2" src="https://github.com/user-attachments/assets/75125828-4705-4676-9f91-709007b38d13" />
-    <br>
-    <em>Visualization of a single Pixie brain (only neurons with connections are plotted)</em>
-</p>
 <p align="center">
     <img width="640" height="480" alt="survival_diversity_plot" src="https://github.com/user-attachments/assets/18bc0b9f-8bc9-4e0d-920a-91da0b633751" />
     <br>
