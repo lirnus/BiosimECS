@@ -1,6 +1,6 @@
 # Biosim - ECS
 by Linus Müller 2025<br>
-This repo is a continuation of the Evolution-Simulieren project by Moritz Wagner and me.
+This repo is a continuation of the [Evolution-Simulieren](https://github.com/MoritzBiosim/Evolution-Simulieren) project by Moritz Wagner and me.
 Just as its predecessor, this project aims to observe evolution and adaptation of randomly generated populations under certain selective stresses.<br>
 One of the limiting factors of the older version, which was written completely in Python, was its poor performance and thus scalability. The goal of this newer version is to implement all (or most) of the previous features while using more computationally efficient code. To do this, I switched programming languages from Python to C++ to gain more control over low-level allocation schedules and grant the compiler more opportunities for optimization.<br>
 There is also a focus on readability of the code and interactivity for users (for example, simulation parameters should be changeable through an extern textfile, not inside the source code). The simulation also aims to be as portable as possible, requiring no external libraries (except for the rendering done in Python, which is optional).<br>
