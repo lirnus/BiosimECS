@@ -19,17 +19,21 @@ The part that gets encoded by the individual pixie genomes are the connections b
 </p>
 
 In the next step, a selection pressure gets applied on these pixies, causing some to perish (fitness = 0) and others to reproduce, getting chosen to pass on their genes to the next generation. The next generation gets filled up with individuals from the previous one, reaching the same fixed size, but only choosing individuals with a fitness > 0. <br> Over many generations, we expect to see that only Pixies with an appropriate behaviour survive and thrive. <br>
-This selection pressure could for example be to only select Pixies on the left half of the grid. Over time, one would expect to mostly find Pixies that exhibit a behaviour that more frequently leads to them being on the left half, and indeed that is what we find:<br>
+This selection pressure could for example be to only select Pixies on the left half of the grid. In this case, we would expect to mostly find Pixies that exhibit a behaviour that more frequently leads to them being on the left half, and indeed that is what we find:<br>
 <p align="center">
     <img src="https://github.com/user-attachments/assets/44ffe40f-d082-4010-bf29-fe369d3baf54">
     <br>
     <em>After only 20 generations, an adaptation response to the selection criterion "kill right half" has been found.</em>
 </p>
 
-
+This "kill right half" scenario is quite simple, but Biosim provides the framework to implement selection criteria as complex as one can imagine, from requiring the Pixies to consume food placed randomly on the grid, fleeing from predators or avoiding certain areas, to clump up, spread out or to overcome obstacles. Due to the heavy modularity of the simulation, these scenarios can always be added in later with no big effort.<br>
+Also, there are multiple simulation modes that are thinkable/executable. First, we have the simple *"fixed"* population size with a selection criteria applied during or after the generation has finished. <br>
+Secondly, there is a *"growing"* mode where Pixies duplicate live during a generation, with a reproduction cooldown timer that can be shortened by conducting certain actions (like eating food, touching barriers, ...). We experience exponential growth, and as soon as a certain threshold of Pixies is reached we reset the population size with Pixies picked randomly from the population. In principle, we also apply natural selection here, as Pixies who are more efficient at reducing their reproduction timer will grow faster and get picked more frequently. This simulation mode more closely represents how experimentalists would handle a lab culture of bacteria or yeast, which grow rapidly in a tube or flask and get "reset" when the culture has grown too much. <br>
+Thirdly, there is a mode of *"continuous"* simulation, where Pixies can reproduce live during the simulation, but also die off after a certain amount of time. Here, a stable population size should arise after a while, dependent on the availability of resources like food and space. Here, we can also introduce "soft" selection criteria that shorten the lifespan of certain individuals or prolong the ones of others. In this setting, with the right simulation parameters, we can maybe experience the formation of a small ecosystem and witness interspecies interactions.<br>
 
 ### Effects to be studied
-The simulation realizes or has the potential to realize concepts like mutation, gene drift, adaptation, migration, advantages of sexual reproduction
+The simulation realizes concepts like fitness, mutation, gene drift, adaptation, migration, sexual reproduction etc.<br>
+Applied to population genetics, we can study the effect of these concepts on adaptation and mean fitness of a population. With the right analysis, we can extract single gene fitness values, draw fitness landscapes or compute gene epistasis effects.
 
 ### Experimental and Analytical features
 The Biosim has multiple features that enable a highly controlled experimental setup, detailed analyis and maximum reproducibility.<br>
@@ -40,7 +44,7 @@ The Biosim has multiple features that enable a highly controlled experimental se
 <p align="center">
     <img width="640" height="480" alt="survival_diversity_plot" src="https://github.com/user-attachments/assets/18bc0b9f-8bc9-4e0d-920a-91da0b633751" />
     <br>
-    <em>Survival rates and diversity across generations</em>
+    <em>Example of survival rates and diversity across generations</em>
 </p>
 <p align="center">
     <img width="640" height="480" alt="mullerplot1" src="https://github.com/user-attachments/assets/b9a7d91b-e3cc-49c7-8e37-94c32c561e40" />
