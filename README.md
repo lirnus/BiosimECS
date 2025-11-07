@@ -15,16 +15,18 @@ The part that gets encoded by the individual pixie genomes are the connections b
 <p align="center">
     <img src=https://github.com/user-attachments/assets/fcf25bee-b827-44f2-9052-5a8dad314d96>
     <br>
-    <em>A population of randomly generated pixies</em>
+    <em>One generation of a population of randomly generated pixies</em>
 </p>
 
-In the next step, a selection pressure gets applied on these pixies, causing some to perish and others to reproduce, passing on their genes to the next generation.<br>
+In the next step, a selection pressure gets applied on these pixies, causing some to perish (fitness = 0) and others to reproduce, getting chosen to pass on their genes to the next generation. The next generation gets filled up with individuals from the previous one, reaching the same fixed size, but only choosing individuals with a fitness > 0. <br> Over many generations, we expect to see that only Pixies with an appropriate behaviour survive and thrive. <br>
 This selection pressure could for example be to only select Pixies on the left half of the grid. Over time, one would expect to mostly find Pixies that exhibit a behaviour that more frequently leads to them being on the left half, and indeed that is what we find:<br>
 <p align="center">
     <img src="https://github.com/user-attachments/assets/44ffe40f-d082-4010-bf29-fe369d3baf54">
     <br>
     <em>After only 20 generations, an adaptation response to the selection criterion "kill right half" has been found.</em>
 </p>
+
+
 
 ### Effects to be studied
 The simulation realizes or has the potential to realize concepts like mutation, gene drift, adaptation, migration, advantages of sexual reproduction
