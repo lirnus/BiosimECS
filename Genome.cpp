@@ -12,7 +12,7 @@ namespace bs {
 		std::array<Connection, MAX_GENES> conn_list = mapDNA2Connections(w->genome.get(newGenome).DNA);
 
 		// generate fwd_adjacency list
-		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> fwd_adjacency = generate_fwdAdj(conn_list);
+		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> fwd_adjacency = generate_fwdAdj(conn_list);
 
 		// check for loops and dead ends, remove
 		checkForLoops_DFS(fwd_adjacency, conn_list);
@@ -275,24 +275,24 @@ namespace bs {
 		if (srcType == 0) { //internal Neuron
 			float num_Neurons = neuronClasses.at(2) - neuronClasses.at(1);
 			float normfactor_src = num_Neurons / 128; //2^7
-			conn.source = static_cast<NeuronTypes>(std::floor(srcID * normfactor_src) + neuronClasses.at(1));
+			conn.source = static_cast<uint8_t>(std::floor(srcID * normfactor_src) + neuronClasses.at(1));
 		}
 		else if (srcType == 1) { //sensor Neuron
 			float num_Neurons = neuronClasses.at(1) - neuronClasses.at(0);
 			float normfactor_src = num_Neurons / 128; //2^7
-			conn.source = static_cast<NeuronTypes>(std::floor(srcID * normfactor_src));
+			conn.source = static_cast<uint8_t>(std::floor(srcID * normfactor_src));
 		}
 		else { throw std::out_of_range("source Index oor"); }
 
 		if (snkType == 0) {//internal neuron
 			float num_Neurons = neuronClasses.at(2) - neuronClasses.at(1);
 			float normfactor_snk = num_Neurons / 128; //2^7
-			conn.sink = static_cast<NeuronTypes>(std::floor(snkID * normfactor_snk) + neuronClasses.at(1));
+			conn.sink = static_cast<uint8_t>(std::floor(snkID * normfactor_snk) + neuronClasses.at(1));
 		}
 		else if (snkType == 1) {//action neuron
 			float num_Neurons = neuronClasses.at(3) - neuronClasses.at(2);
 			float normfactor_snk = num_Neurons / 128; //2^7
-			conn.sink = static_cast<NeuronTypes>(std::floor(snkID * normfactor_snk) + neuronClasses.at(2));
+			conn.sink = static_cast<uint8_t>(std::floor(snkID * normfactor_snk) + neuronClasses.at(2));
 		}
 		else { throw std::out_of_range("sink Index oor"); }
 
@@ -307,12 +307,12 @@ namespace bs {
 		return (x & mask) >> low;
 	}
 
-	std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> generate_fwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
+	std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> generate_fwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
 
-		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> fwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
+		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> fwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
 																				   // this is done so that stack allocation is still possible
 
-		std::array<int, NUM_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
+		std::array<int, MAX_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
 
 		// for each connenction in conn_list, add sink, weight to fwd_adj[src]
 		for (const Connection& conn : conn_list) {
@@ -348,13 +348,13 @@ namespace bs {
 		return fwd_adj;
 	}
 
-	void checkForLoops_DFS(std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& fwd_adj,
+	void checkForLoops_DFS(std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& fwd_adj,
 		std::array<Connection, MAX_GENES>& conn_list) {
 
 		size_t numGenes = worldParams->numberOfGenes;
 
 		// create a temporary array to track which neurons were visited. 0 = unvisited, 1 = visiting, 2 = visited
-		std::array<int, NUM_NEURONS> visiting_status{};
+		std::array<int, MAX_NEURONS> visiting_status{};
 
 		//bool dfs_unsuccessfull = true;
 
@@ -390,7 +390,7 @@ restart:
 			std::array<int, MAX_GENES> path_tracker{}; // tracks the Neuron indices of the currently visited path
 			size_t pathDepth = 0; //path_tracker[pathDepth++] = x --> push, x = path_tracker[--pathDepth] --> pop
 
-			std::array<int, NUM_NEURONS> branch_tracker{}; // sparse set to track how many adjacencies have already been visited
+			std::array<int, MAX_NEURONS> branch_tracker{}; // sparse set to track how many adjacencies have already been visited
 			size_t currentBranchDepth{};
 
 
@@ -507,11 +507,11 @@ restart:
 
 	}
 
-	std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> generate_bwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
-		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> bwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
+	std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> generate_bwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
+		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> bwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
 		// this is done so that stack allocation is still possible
 
-		std::array<int, NUM_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
+		std::array<int, MAX_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
 
 		// for each connenction in conn_list, add source, weight to bwd_adj[snk]
 		for (const Connection& conn : conn_list) {
@@ -548,7 +548,7 @@ restart:
 		return bwd_adj;
 	}
 
-	void calculate_topoOrder(const std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& bwd_adj, std::vector<NeuronTypes>& topoOrder) {
+	void calculate_topoOrder(const std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj, std::vector<uint8_t>& topoOrder) {
 
 		/*
 		* Do a BFS (Breadth-First search) through the backwards adjacency list.
@@ -561,7 +561,7 @@ restart:
 		* The array BACKWARDS and if a neruon is valid, push it to the topoOrder vector.
 		*/
 
-		std::array<NeuronTypes, MAX_GENES * 2> bfs_queue{};
+		std::array<uint8_t, MAX_GENES * 2> bfs_queue{};
 		std::array<bool, MAX_GENES * 2> track_validity{};
 
 		int next_free_index = 0;
@@ -571,7 +571,7 @@ restart:
 		for (int root = neuronClasses.at(2); root < neuronClasses.at(3); root++) {
 
 			if (bwd_adj.at(root).at(0).valid) {
-				bfs_queue.at(next_free_index) = static_cast<NeuronTypes>(root);
+				bfs_queue.at(next_free_index) = static_cast<uint8_t>(root);
 				//std::cout << "root: " << static_cast<int>(bfs_queue.at(next_free_index)) << "\n";
 				track_validity.at(next_free_index) = true;
 				next_free_index++;
@@ -629,7 +629,7 @@ restart:
 			for (const bool i : track_validity) { if (i) sum_up++; }
 			return sum_up;
 			}();
-		assert(sum <= NUM_NEURONS);
+		assert(sum <= MAX_NEURONS);
 
 		//now step through the array in reverse order and push to topoOrder
 		int numGenes = worldParams->numberOfGenes;
@@ -655,7 +655,7 @@ restart:
 	}
 
 
-	void delete_connection(std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> &fwd_adj, std::array<Connection, MAX_GENES> &conn_list, int source, int sink) { // find and delete any connections with matching sources and sinks
+	void delete_connection(std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> &fwd_adj, std::array<Connection, MAX_GENES> &conn_list, int source, int sink) { // find and delete any connections with matching sources and sinks
 		for (Connection& conn : conn_list) {
 			if (conn.source == source) {
 				if (conn.sink == sink) {

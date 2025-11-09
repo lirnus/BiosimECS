@@ -11,10 +11,10 @@ namespace bs {
 
 
 	//using NeuronFunc = void(*)(World* w, Entity e);
-	////std::vector<NeuronFunc> funcTable(NUM_NEURONS);
-	std::array < NeuronFunc, NUM_NEURONS > funcTable{};
+	std::vector<NeuronFunc> funcTable;
+	//std::array < NeuronFunc, NUM_NEURONS > funcTable{};
 
-	void initFuncTable() {
+	/*void initFuncTable() {
 		funcTable.fill(nullptr);
 
 		funcTable[sX_POS] = &xPos_neuronfunc;
@@ -28,12 +28,37 @@ namespace bs {
 		funcTable[aMOVE_E] = moveE_neuronfunc;
 		funcTable[aMOVE_N] = moveN_neuronfunc;
 		funcTable[aMOVE_S] = moveS_neuronfunc;
+	}*/
+
+	void initFuncTable() {// fill up funcTable and neuronClasses
+		
+		int index_counter{ 0 };
+
+		//s
+		neuronClasses.push_back(index_counter); // { 0 }
+		if (activeNeurons->xPos) funcTable.push_back(&xPos_neuronfunc); index_counter++;
+		if (activeNeurons->yPos) funcTable.push_back(&yPos_neuronfunc); index_counter++;
+		if (activeNeurons->popDensityFwd) funcTable.push_back(&popDensityFwd_neuronfunc); index_counter++;
+		if (activeNeurons->age) funcTable.push_back(&age_neuronfunc); index_counter++;
+		neuronClasses.push_back(index_counter); // { 0, numSensors }
+		//i
+		for (int i = 0; i < activeNeurons->numInternals; i++) {
+			funcTable.push_back(nullptr);
+			index_counter++;
+		}
+		neuronClasses.push_back(index_counter); // { 0, numSensors, numInternals }
+		//a
+		if (activeNeurons->moveW) funcTable.push_back(&moveW_neuronfunc); index_counter++;
+		if (activeNeurons->moveE) funcTable.push_back(&moveE_neuronfunc); index_counter++;
+		if (activeNeurons->moveN) funcTable.push_back(&moveN_neuronfunc); index_counter++;
+		if (activeNeurons->moveS) funcTable.push_back(&moveS_neuronfunc); index_counter++;
+		neuronClasses.push_back(index_counter); // { 0, numSensors, numInternals, NUM_NEURONS }
 	}
 
 	// AXON FUNCTIONS ////////////////////////////////////////////////////////////////////////////////
 
 	void update_BrainState(
-		const NeuronTypes& neuron, 
+		const int& neuron, 
 		World* w, 
 		Entity pixie
 	) {
@@ -43,8 +68,8 @@ namespace bs {
 	}
 
 	void sumAndClamp(
-		const std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& bwd_adj, 
-		const NeuronTypes& neuron, 
+		const std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj,
+		const int& neuron, 
 		World* w, 
 		Entity p
 	) {
@@ -72,8 +97,8 @@ namespace bs {
 	}
 
 	void evaluate(
-		const std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& bwd_adj,
-		const NeuronTypes& neuron,
+		const std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj,
+		const int& neuron,
 		World* w,
 		Entity p
 	) {
@@ -81,7 +106,7 @@ namespace bs {
 
 		if (randomengine->getRandom01() < w->brainstate.get(p).outputs.at(neuron)) {
 			// fire neuron
-			funcTable.at(neuron)(w, p);
+			funcTable[neuron](w, p);
 		}
 	}
 
@@ -89,8 +114,8 @@ namespace bs {
 	void execute_staticBrain(World* w, Entity p) {
 		// execute topoOrder functions
 		Genome& pixie_gnm = w->genome.get(w->PixieGenomes.get(p));
-		std::vector<NeuronTypes>& topoOrder = pixie_gnm.topoOrder;
-		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& bwd_adj = pixie_gnm.bwd_adjacency;
+		std::vector<uint8_t>& topoOrder = pixie_gnm.topoOrder;
+		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj = pixie_gnm.bwd_adjacency;
 		
 		// DEBUG: ////////////////
 		/*std::cout << "topoOrder: {";

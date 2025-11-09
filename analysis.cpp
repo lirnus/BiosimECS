@@ -88,7 +88,7 @@ namespace bs {
 		file << "color_variation: " << renderParams->color_variation << "\n";
 
 		file << "\nEnabled Neurons:\n";
-		for (int i = 0; i < NeuronTypes::NUM_NEURONS; i++) {
+		for (int i = 0; i < MAX_NEURONS; i++) {
 			file << neurons_printable(i) << "\n";
 		}
 
@@ -149,7 +149,7 @@ namespace bs {
 	std::string_view neurons_printable(uint8_t neuron) { // HAS TO BE UPDATED MANUALLY 
 		uint8_t key = neuron;
 		
-		switch (key) {
+		/*switch (key) {
 		case sX_POS:
 			return "sX_POS";
 		case sY_POS:
@@ -175,8 +175,8 @@ namespace bs {
 
 		default:
 			return "n/a";
-		}
-
+		}*/
+		return "under maintenance";
 	}
 
 

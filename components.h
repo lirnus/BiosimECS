@@ -22,15 +22,15 @@ namespace bs {
 			lastStepOutputs.fill(0.0);
 		}
 
-		std::array<float, NUM_NEURONS> outputs; 
-		std::array<float, NUM_NEURONS> lastStepOutputs;
+		std::array<float, MAX_NEURONS> outputs;
+		std::array<float, MAX_NEURONS> lastStepOutputs;
 	};
 	
 	struct Neighbourhood {
 		Neighbourhood(){
-			int dsr = pixParams->defaultSearchRadius;
+			float dsr = pixParams->defaultSearchRadius;
 			int dsr_sqrd = dsr * dsr;
-			neighbours.reserve(dsr_sqrd); // pi*r² ?
+			neighbours.reserve(dsr_sqrd);
 			distances.reserve(dsr_sqrd);
 			relAngles.reserve(dsr_sqrd);
 		}
@@ -43,20 +43,20 @@ namespace bs {
 
 
 	// components for genomes
-	struct Connection { bool valid = false;  NeuronTypes source; NeuronTypes sink; float weight; }; //zero-initialized as
+	struct Connection { bool valid = false;  uint8_t source; uint8_t sink; float weight; }; //zero-initialized as
 	
-	struct Adjacency { bool valid = false;  NeuronTypes neighbour{}; float weight{}; }; //zero-initialized as { false, NeuronTypes{0}, 0.0f } { false, NeuronTypes{0}, NeuronTypes{0}, 0.0f }
+	struct Adjacency { bool valid = false;  uint8_t neighbour{}; float weight{}; }; //zero-initialized as { false, NeuronTypes{0}, 0.0f } { false, NeuronTypes{0}, NeuronTypes{0}, 0.0f }
 
 	struct Genome {
 		Genome() {
-			topoOrder.reserve(NUM_NEURONS);
+			topoOrder.reserve(MAX_NEURONS);
 		}
 
 		//std::array<uint32_t, MAX_GENES> DNA; // why not a vector
 		std::vector<uint32_t> DNA;
 		Color col;
-		std::vector<NeuronTypes> topoOrder; 
-		std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> bwd_adjacency;
+		std::vector<uint8_t> topoOrder; 
+		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> bwd_adjacency;
 	};
 
 	struct startingGenome { // for startingPopulations with the use of readMetaGenome()

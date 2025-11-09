@@ -22,12 +22,12 @@ namespace bs {
 	std::array<Connection, MAX_GENES> mapDNA2Connections(const std::vector<uint32_t>& genes);
 	Connection mapDNA2Connection_single(const uint32_t& gene);
 	uint32_t extractBits(uint32_t x, int low, int high);
-	std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> generate_fwdAdj(const std::array<Connection, MAX_GENES>& conn_list);
-	void checkForLoops_DFS(std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& fwd_adj,
+	std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> generate_fwdAdj(const std::array<Connection, MAX_GENES>& conn_list);
+	void checkForLoops_DFS(std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& fwd_adj,
 		std::array<Connection, MAX_GENES>& conn_list);
-	std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS> generate_bwdAdj(const std::array<Connection, MAX_GENES>& conn_list);
+	std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> generate_bwdAdj(const std::array<Connection, MAX_GENES>& conn_list);
 	void calculate_topoOrder(const std::array<std::array<Adjacency, MAX_GENES>,
-		NUM_NEURONS>& bwd_adj, std::vector<NeuronTypes>& topoOrder);
-	void delete_connection(std::array<std::array<Adjacency, MAX_GENES>, NUM_NEURONS>& fwd_adj,
+		MAX_NEURONS>& bwd_adj, std::vector<uint8_t>& topoOrder);
+	void delete_connection(std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& fwd_adj,
 		std::array<Connection, MAX_GENES> &conn_list, int source, int sink);
 }

@@ -12,6 +12,7 @@ namespace bs {
 	SimulationParams* simParams = new bs::SimulationParams();
 	PopulationParams* popParams = new bs::PopulationParams();
 	PixieParams* pixParams = new bs:: PixieParams();
+	ActiveNeurons* activeNeurons = new bs::ActiveNeurons();
 	AnalyticsParams* analParams = new bs::AnalyticsParams();
 	RenderParams* renderParams = new bs::RenderParams();
 	BaseDir* basedir_struct = new bs::BaseDir();
@@ -19,6 +20,9 @@ namespace bs {
 	
 	// random engine
 	Random* randomengine = new bs::Random();
+
+	// neuron Classes vector tracking how many neurons of each class are active
+	std::vector<int> neuronClasses{};
 
 
 	void initParameters(const std::string& filename) {
@@ -73,6 +77,20 @@ namespace bs {
 				if (key == "mutationRate") pixParams->mutationRate = std::stof(value);
 				else if (key == "weight_factor") pixParams->weight_factor = std::stof(value);
 				else if (key == "defaultSearchRadius") pixParams->defaultSearchRadius = std::stof(value);
+			}
+			else if (section == "[neurons]") {
+				//s
+				if (key == "xPos") activeNeurons->xPos = (value == "true" || value == "True" || value == "T");
+				else if (key == "yPos") activeNeurons->yPos = (value == "true" || value == "True" || value == "T");
+				else if (key == "popDensityFwd") activeNeurons->popDensityFwd = (value == "true" || value == "True" || value == "T");
+				else if (key == "age") activeNeurons->age = (value == "true" || value == "True" || value == "T");
+				//i
+				else if (key == "numberOfInternals") activeNeurons->numInternals = std::stoi(value);
+				// a
+				else if (key == "moveW") activeNeurons->moveW = (value == "true" || value == "True" || value == "T");
+				else if (key == "moveE") activeNeurons->moveE = (value == "true" || value == "True" || value == "T");
+				else if (key == "moveN") activeNeurons->moveN = (value == "true" || value == "True" || value == "T");
+				else if (key == "moveS") activeNeurons->moveS = (value == "true" || value == "True" || value == "T");
 			}
 			else if (section == "[analytics]") {
 				if (key == "calc_pop_stats") analParams->calc_pop_stats = (value == "true" || value == "True" || value == "T");

@@ -30,27 +30,29 @@ namespace bs {
 		DENSE_FOOD,
 		FOUR_FLAGS
 	};
-	enum NeuronTypes : uint8_t {// Has to be sorted: sensors, internals, actions
-		sX_POS, // 0U
-		sY_POS,
-		sPOP_DENSITY_FWD,
-		sAGE,
-		iINT_1, // 4U
-		iINT_2,
-		iINT_3,
-		aMOVE_W,	// 7U
-		aMOVE_E,
-		aMOVE_N,
-		aMOVE_S,
-		NUM_NEURONS // 11U
-	};
+	//enum NeuronTypes : uint8_t {// Has to be sorted: sensors, internals, actions
+	//	sX_POS, // 0U
+	//	sY_POS,
+	//	sPOP_DENSITY_FWD,
+	//	sAGE,
+	//	iINT_1, // 4U
+	//	iINT_2,
+	//	iINT_3,
+	//	aMOVE_W,	// 7U
+	//	aMOVE_E,
+	//	aMOVE_N,
+	//	aMOVE_S,
+	//	NUM_NEURONS // 11U
+	//};
 	// vector tracking the indexation of the 3 neuron "classes"
-	static constexpr std::array<int, 4> neuronClasses = { 0, 4, 7, 11 };
+	//static constexpr std::array<int, 4> neuronClasses = { 0, 4, 7, 11 };
+	extern std::vector<int> neuronClasses;
 
 	// PARAMETERS ////////////////////////////////////////////////////////////////////////////////////
 
 	// world parameters
 	static constexpr size_t MAX_GENES = 1024;
+	static constexpr size_t MAX_NEURONS = _UI8_MAX; // 0..255
 	/*static constexpr int gridsizeY = 100;
 	static constexpr int gridsizeX = 100;
 	static constexpr int numberOfGenes = 10;
@@ -106,6 +108,24 @@ namespace bs {
 		float mutationRate{ 0.001 };
 		float weight_factor{ 2 };
 		float defaultSearchRadius{ 5 };
+	};
+
+
+	// Neurons
+
+	struct ActiveNeurons {
+		//s
+		bool xPos;
+		bool yPos;
+		bool popDensityFwd;
+		bool age;
+		//i
+		int numInternals;
+		//a
+		bool moveW;
+		bool moveE;
+		bool moveN;
+		bool moveS;
 	};
 
 	// analytics
@@ -169,6 +189,7 @@ namespace bs {
 	extern SimulationParams* simParams;
 	extern PopulationParams* popParams;
 	extern PixieParams* pixParams;
+	extern ActiveNeurons* activeNeurons;
 	extern AnalyticsParams* analParams;
 	extern RenderParams* renderParams;
 	extern BaseDir* basedir_struct;
