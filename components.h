@@ -52,15 +52,15 @@ namespace bs {
 			topoOrder.reserve(MAX_NEURONS);
 		}
 
-		//std::array<uint32_t, MAX_GENES> DNA; // why not a vector
+		//std::array<uint32_t, MAX_ADJ> DNA; // why not a vector
 		std::vector<uint32_t> DNA;
 		Color col;
 		std::vector<uint8_t> topoOrder; 
-		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> bwd_adjacency;
+		std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS> bwd_adjacency;
 	};
 
 	struct startingGenome { // for startingPopulations with the use of readMetaGenome()
-		//std::array<uint32_t, MAX_GENES> DNA; // why not a vector
+		//std::array<uint32_t, MAX_ADJ> DNA; // why not a vector
 		std::vector<uint32_t> DNA;
 		Color col;
 		int numClones;

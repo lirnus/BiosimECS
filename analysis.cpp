@@ -302,7 +302,7 @@ namespace bs {
 			// all genes
 			int geneCount{};
 			std::string dna_str;
-			//std::array<uint32_t, MAX_GENES> dna_array{};
+			//std::array<uint32_t, MAX_ADJ> dna_array{};
 			std::vector<uint32_t> dna_array{};
 			dna_array.reserve(numGenes);
 			while (std::getline(line_stream, dna_str, ',')) {

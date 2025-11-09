@@ -51,7 +51,10 @@ namespace bs {
 	// PARAMETERS ////////////////////////////////////////////////////////////////////////////////////
 
 	// world parameters
-	static constexpr size_t MAX_GENES = 1024;
+	static constexpr size_t MAX_ADJ = 25; // maximum number of adjacencies/connections (source/sink) of one neuron to another.
+											// controls the size of fwd/bwd_adjacency lists etc. This value is not big enough to cover all possible
+											// connection cases for arbitrary genome sizes, but within probable reason, it should never cause problems.
+	static constexpr size_t MAX_GENES = 1024; // max number of total genes
 	static constexpr size_t MAX_NEURONS = _UI8_MAX; // 0..255
 	/*static constexpr int gridsizeY = 100;
 	static constexpr int gridsizeX = 100;

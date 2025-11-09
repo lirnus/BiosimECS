@@ -8,11 +8,11 @@ namespace bs {
 	// file containing Neuron functions
 
 	// "axon" functions to propagate information through the brain network
-	void sumAndClamp(const std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj, const int& neuron, World* w, Entity p); // uses bwd_adj to find all sources, sum up those values and clamp them with tanh()
+	void sumAndClamp(const std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS>& bwd_adj, const int& neuron, World* w, Entity p); // uses bwd_adj to find all sources, sum up those values and clamp them with tanh()
 
 	void update_BrainState(const int& neuron, World* w, Entity p); // function to retrieve outputs from one neuronfunc and store it in the appropriate brainstate slot
 
-	void evaluate(const std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj, const int& neuron, World* w, Entity p);
+	void evaluate(const std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS>& bwd_adj, const int& neuron, World* w, Entity p);
 
 	// neuron functions (directly return their output)
 	//s

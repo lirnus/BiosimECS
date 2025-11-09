@@ -12,7 +12,7 @@ namespace bs {
 		std::array<Connection, MAX_GENES> conn_list = mapDNA2Connections(w->genome.get(newGenome).DNA);
 
 		// generate fwd_adjacency list
-		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> fwd_adjacency = generate_fwdAdj(conn_list);
+		std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS> fwd_adjacency = generate_fwdAdj(conn_list);
 
 		// check for loops and dead ends, remove
 		checkForLoops_DFS(fwd_adjacency, conn_list);
@@ -307,9 +307,9 @@ namespace bs {
 		return (x & mask) >> low;
 	}
 
-	std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> generate_fwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
+	std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS> generate_fwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
 
-		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> fwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
+		std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS> fwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
 																				   // this is done so that stack allocation is still possible
 
 		std::array<int, MAX_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
@@ -348,7 +348,7 @@ namespace bs {
 		return fwd_adj;
 	}
 
-	void checkForLoops_DFS(std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& fwd_adj,
+	void checkForLoops_DFS(std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS>& fwd_adj,
 		std::array<Connection, MAX_GENES>& conn_list) {
 
 		size_t numGenes = worldParams->numberOfGenes;
@@ -387,7 +387,7 @@ restart:
 			//std::cout << "root: " << root << "\n";
 			if (visiting_status[root] == 2) continue; //this neuron is already fully visited
 
-			std::array<int, MAX_GENES> path_tracker{}; // tracks the Neuron indices of the currently visited path
+			std::array<int, MAX_ADJ> path_tracker{}; // tracks the Neuron indices of the currently visited path
 			size_t pathDepth = 0; //path_tracker[pathDepth++] = x --> push, x = path_tracker[--pathDepth] --> pop
 
 			std::array<int, MAX_NEURONS> branch_tracker{}; // sparse set to track how many adjacencies have already been visited
@@ -507,8 +507,8 @@ restart:
 
 	}
 
-	std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> generate_bwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
-		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> bwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
+	std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS> generate_bwdAdj(const std::array<Connection, MAX_GENES>& conn_list) {
+		std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS> bwd_adj{}; // array of arrays; buffer is numberOfGenes --> max number of connections to a single gene.
 		// this is done so that stack allocation is still possible
 
 		std::array<int, MAX_NEURONS> connection_tracker{}; // temp array to track how many connections each neuron already has
@@ -548,7 +548,7 @@ restart:
 		return bwd_adj;
 	}
 
-	void calculate_topoOrder(const std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj, std::vector<uint8_t>& topoOrder) {
+	void calculate_topoOrder(const std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS>& bwd_adj, std::vector<uint8_t>& topoOrder) {
 
 		/*
 		* Do a BFS (Breadth-First search) through the backwards adjacency list.
@@ -561,8 +561,8 @@ restart:
 		* The array BACKWARDS and if a neruon is valid, push it to the topoOrder vector.
 		*/
 
-		std::array<uint8_t, MAX_GENES * 2> bfs_queue{};
-		std::array<bool, MAX_GENES * 2> track_validity{};
+		std::array<uint8_t, MAX_ADJ * 2> bfs_queue{};
+		std::array<bool, MAX_ADJ * 2> track_validity{};
 
 		int next_free_index = 0;
 		int current_step = 0;
@@ -655,7 +655,7 @@ restart:
 	}
 
 
-	void delete_connection(std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS> &fwd_adj, std::array<Connection, MAX_GENES> &conn_list, int source, int sink) { // find and delete any connections with matching sources and sinks
+	void delete_connection(std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS> &fwd_adj, std::array<Connection, MAX_GENES> &conn_list, int source, int sink) { // find and delete any connections with matching sources and sinks
 		for (Connection& conn : conn_list) {
 			if (conn.source == source) {
 				if (conn.sink == sink) {

@@ -68,7 +68,7 @@ namespace bs {
 	}
 
 	void sumAndClamp(
-		const std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj,
+		const std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS>& bwd_adj,
 		const int& neuron, 
 		World* w, 
 		Entity p
@@ -97,7 +97,7 @@ namespace bs {
 	}
 
 	void evaluate(
-		const std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj,
+		const std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS>& bwd_adj,
 		const int& neuron,
 		World* w,
 		Entity p
@@ -115,7 +115,7 @@ namespace bs {
 		// execute topoOrder functions
 		Genome& pixie_gnm = w->genome.get(w->PixieGenomes.get(p));
 		std::vector<uint8_t>& topoOrder = pixie_gnm.topoOrder;
-		std::array<std::array<Adjacency, MAX_GENES>, MAX_NEURONS>& bwd_adj = pixie_gnm.bwd_adjacency;
+		std::array<std::array<Adjacency, MAX_ADJ>, MAX_NEURONS>& bwd_adj = pixie_gnm.bwd_adjacency;
 		
 		// DEBUG: ////////////////
 		/*std::cout << "topoOrder: {";
