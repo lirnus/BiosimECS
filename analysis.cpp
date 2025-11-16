@@ -10,7 +10,7 @@
 namespace bs {
 
 	// metadata
-	void saveMetaData() {
+	void saveMetaData(const std::string& configFile) {
 		std::ostringstream oss;
 		oss << bs::folder_dir << "/metadata.txt";
 		std::string fileName = oss.str();
@@ -32,13 +32,14 @@ namespace bs {
 #endif
 
 		// write
-		file << "+++ Pixies Evolutionary Simulation +++\n\n";
+		file << "### Pixies Evolutionary Sandbox Simulation ###\n\n";
 
-		file << "experiment from " << std::put_time(&tm, "%m.%d.%Y %H:%M") << "\n";
-		file << "file directory: " << folder_dir << "\n";
-		file << "Time elapsed during simulation: " << simulationTime << " sec. ";
-		file << "Time elapsed during rendering: " << renderingTime << " sec.\n";
-
+		file << "# experiment from " << std::put_time(&tm, "%Y/%m/%d %H:%M") << "\n";
+		file << "# file directory: " << folder_dir << "\n";
+		file << "# Time elapsed during simulation: " << simulationTime << " sec";
+		file << "; Time elapsed during rendering: " << renderingTime << " sec\n";
+		
+		/*
 		file << "\n-World parameters-\n";
 		file << "gridsizeX: "			<< worldParams->gridSizeX				<< "\n";
 		file << "gridsizeY: "			<< worldParams->gridSizeY				<< "\n";
@@ -91,8 +92,15 @@ namespace bs {
 		for (int i = 0; i < MAX_NEURONS; i++) {
 			file << neurons_printable(i) << "\n";
 		}
+		*/
 
+		// append simconfig.ini 
+		std::ifstream simconfig_file(configFile);
 
+		std::string line;
+		while (std::getline(simconfig_file, line)) {
+			file << line << "\n";
+		}
 
 		// close
 		file.close();
@@ -217,7 +225,7 @@ namespace bs {
 			int numClones{};
 			w->PixieGenomes.for_each([&](Entity e, Entity c) { if (c == g_e) numClones++; });
 			
-			Genome gnm = w->genome.get(g_e);
+			const Genome& gnm = w->genome.get(g_e);
 
 			file << numClones << ',';
 			file << static_cast<int>(gnm.col.r) << ','
@@ -388,7 +396,11 @@ namespace bs {
 
 		// write header
 		if (file_empty) { 
-			file << worldParams->gridSizeY << ',' << worldParams->gridSizeX << ',' << renderParams->GIF_resolution << ',' << static_cast<int>(worldParams->selectionCriterium) << '\n';
+			file << worldParams->gridSizeY << ',' 
+				<< worldParams->gridSizeX << ',' 
+				<< renderParams->GIF_resolution << ',' 
+				<< renderParams->GIF_frameduration << ','
+				<< static_cast<int>(worldParams->selectionCriterium) << '\n';
 
 			// write one line of environment positions
 			for (size_t i = 0; i < barriers.size(); i++) {

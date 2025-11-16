@@ -12,7 +12,8 @@ int main() {
 	std::cout << "program is running...\n\n";
 	auto start = std::chrono::high_resolution_clock::now();
 	
-	bs::initParameters("simconfig.ini");
+	std::string configFile = "simconfig.ini";
+	bs::initParameters(configFile);
 
 	// create new folder directory
 	bs::initFolderDir(static_cast<std::string>(basedir_struct->baseDir));
@@ -50,7 +51,7 @@ int main() {
 	renderingTime = elapsed.count();
 	std::cout << "time elapsed for rendering: " << renderingTime << " seconds\n";
 
-	saveMetaData();
+	saveMetaData(configFile);
 	std::cout << "program finished\n";
 
 	return 0;

@@ -107,6 +107,7 @@ namespace bs {
 			else if (section == "[render settings]") {
 				if (key == "createGIF") renderParams->createGIF = value;
 				else if (key == "GIF_resolution") renderParams->GIF_resolution = std::stoi(value);
+				else if (key == "GIF_frameduration") renderParams->GIF_frameduration = std::stoi(value);
 				else if (key == "createGIFevery") renderParams->createGIFevery = std::stoi(value);
 				else if (key == "createGIFfor") {
 					std::stringstream value_stream;

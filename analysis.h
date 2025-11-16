@@ -5,7 +5,7 @@
 namespace bs {
 
 	// metadata
-	void saveMetaData();
+	void saveMetaData(const std::string& configFile);
 	std::string_view selCrit_printable();
 	std::string_view barriers_printable();
 	std::string_view interactives_printable();

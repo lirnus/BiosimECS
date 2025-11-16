@@ -15,7 +15,7 @@ with open("folderdir.txt") as file:
 gif_frames = []
 
 # render dis shit
-def render(object_data, barrier_data, food_data, gridsize, circleDiameter=30, spacing=0, deathArea=None):
+def render(gridsize, object_data, barrier_data=None, food_data=None, circleDiameter=30, spacing=0, deathArea=None):
     # object_data:
     # (shape; yxPos[0]; yxPos[1]; facing; color[0]; color[1]; color[2])
     #    0       1          2       3         4        5         6
@@ -65,11 +65,62 @@ def render(object_data, barrier_data, food_data, gridsize, circleDiameter=30, sp
        
         
     gif_frames.append(image)
+
+def render_pixels(gridsize, object_data, barrier_data, food_data, cellWidth=1, deathArea=None):
+
+    imgSizeX = cellWidth * gridsize[0]
+    imgSizeY = cellWidth * gridsize[1]
+
+    # draw data on a numpy array for very fast pixel operations
+    grid = np.zeros((imgSizeY, imgSizeX, 3), dtype=np.uint8)
+    grid.fill(255) # white
+
+    # draw death areas manually for different keys
+    if deathArea == 0:
+        for x in range(0, imgSizeX//2):
+            for y in range(0, imgSizeY):
+                grid[x, y] = (255, 70, 70)
+
+    # draw object data
+    for object_ in object_data:
+        # get color
+        rgb_color = (object_[3], object_[4], object_[5])
+
+        # get position (y, x)
+        top_left = (object_[1]*cellWidth, object_[0]*cellWidth) # (x, y)
+        bottom_right = (top_left[0] + cellWidth, top_left[1] + cellWidth) # (x+dx, y+dy)
+
+        for x in range(top_left[0], bottom_right[0]):
+            for y in range(top_left[1], bottom_right[1]):
+                grid[y, x] = rgb_color
+
+    # draw barriers
+    for object_ in barrier_data:
+        # get position (y, x)
+        top_left = (object_[1]*cellWidth, object_[0]*cellWidth) # (x, y)
+        bottom_right = (top_left[0] + cellWidth, top_left[1] + cellWidth) # (x+dx, y+dy)
+
+        for x in range(top_left[0], bottom_right[0]):
+            for y in range(top_left[1], bottom_right[1]):
+                grid[y, x] = (93, 85, 85)
+
+    # draw food
+    for object_ in food_data:
+        # get position (y, x)
+        top_left = (object_[1]*cellWidth, object_[0]*cellWidth) # (x, y)
+        bottom_right = (top_left[0] + cellWidth, top_left[1] + cellWidth) # (x+dx, y+dy)
+
+        for x in range(top_left[0], bottom_right[0]):
+            for y in range(top_left[1], bottom_right[1]):
+                grid[y, x] = (255, 255, 0)
+
+    image = Image.fromarray(grid, "RGB")
+    gif_frames.append(image)
     
 
-def create_gif(filename="sandbox.gif"):   
+def create_gif(filename="sandbox.gif", frameduration=150):   
     "save in cwd"
-    gif_frames[0].save(filename, save_all=True, append_images=gif_frames[1:],duration=150, loop=0)
+    gif_frames[0].save(filename, save_all=True, append_images=gif_frames[1:],duration=frameduration, loop=0)
     clear_gif()
 
 def clear_gif():
@@ -96,13 +147,14 @@ def renderGenerations():
         # open file and start extracting object data
         with open(filepath) as textfile:
 
-            # first line tells us world size y, x, render_resolution, selection criterium
+            # first line tells us world size y, x, render_resolution, frame duration, selection criterium
             firstline = textfile.readline()
             header = firstline.strip("\n").split(",")
             ysize = header[0]
             xsize = header[1]
             resolution = header[2]
-            selCrit = header[3]
+            frameduration = header[3]
+            selCrit = header[4]
 
             # second line tells us the position of barriers
             secondline = textfile.readline()
@@ -145,13 +197,16 @@ def renderGenerations():
                             data = (elem[2], (int(elem[0]), int(elem[1])))
                             if data[0] == "-3": # -3 = FOOD in World.h
                                 food_data.append(data[1])
-
-                    render(object_data, barrier_data, food_data, (int(xsize), int(ysize)), circleDiameter=int(resolution), deathArea=death_area)
+                    # render
+                    if int(resolution) < 4:
+                        render_pixels((int(xsize), int(ysize)), object_data, barrier_data, food_data, cellWidth=int(resolution), deathArea=death_area)
+                    else:
+                        render((int(xsize), int(ysize)), object_data, barrier_data, food_data, circleDiameter=int(resolution), deathArea=death_area)
 
 
             # create GIF for generation
             fileName = "generation_" + generation_num + ".gif"
-            create_gif(filename=fileName)
+            create_gif(filename=fileName, frameduration=int(frameduration))
             clear_gif()
 
 renderGenerations()

@@ -156,6 +156,7 @@ namespace bs {
 	struct RenderParams {
 		std::string createGIF{ "first&last" };
 		int GIF_resolution{ 10 };
+		int GIF_frameduration{ 150 };
 		int createGIFevery{ 1 };
 		std::vector<int> createGIFfor{ 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 };
 		int color_variation{ 20 };
