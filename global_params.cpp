@@ -91,6 +91,7 @@ namespace bs {
 				else if (key == "moveE") activeNeurons->moveE = (value == "true" || value == "True" || value == "T");
 				else if (key == "moveN") activeNeurons->moveN = (value == "true" || value == "True" || value == "T");
 				else if (key == "moveS") activeNeurons->moveS = (value == "true" || value == "True" || value == "T");
+				else if (key == "emitPher") activeNeurons->emitPher = (value == "true" || value == "True" || value == "T");
 			}
 			else if (section == "[analytics]") {
 				if (key == "calc_pop_stats") analParams->calc_pop_stats = (value == "true" || value == "True" || value == "T");

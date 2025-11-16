@@ -18,9 +18,12 @@ namespace bs {
 
 
     class World {
+        int worldSizeX;
+        int worldSizeY;
         std::vector<int> grid;
+        std::vector<uint8_t> pheromone_grid;
     public:
-        World();
+        World(const WorldParams* wp);
 
         EntityManager pixie_em; // an EntityManager to give away entities for pixie
 
@@ -46,9 +49,16 @@ namespace bs {
         void setGridCell(int r, int c, int value);
         void setGridCell(std::vector<int>, int value);
         void setGridCell(Position&, int value);
-        bool isInBounds(int r, int c);
-        bool isInBounds(Position& pos);
+        uint8_t getPheromoneCell(int r, int c) const;
+        uint8_t getPheromoneCell(Position& pos) const;
+        void setPheromoneCell(int r, int c, uint8_t value);
+        void setPheromoneCell(Position& pos, uint8_t value);
+        bool isInBounds(int r, int c) const;
+        bool isInBounds(Position& pos) const;
+
+        void pheromoneDecay(uint8_t decayAmount = 64);
 
         void printGrid();
+        void printPheromoneGrid();
     };
 }

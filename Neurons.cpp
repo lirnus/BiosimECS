@@ -30,7 +30,7 @@ namespace bs {
 		funcTable[aMOVE_S] = moveS_neuronfunc;
 	}*/
 
-	void initFuncTable() {// fill up funcTable and neuronClasses
+	void initNeuronFuncTable() {// fill up funcTable and neuronClasses
 		
 		int index_counter{ 0 };
 
@@ -52,6 +52,7 @@ namespace bs {
 		if (activeNeurons->moveE) funcTable.push_back(&moveE_neuronfunc); index_counter++;
 		if (activeNeurons->moveN) funcTable.push_back(&moveN_neuronfunc); index_counter++;
 		if (activeNeurons->moveS) funcTable.push_back(&moveS_neuronfunc); index_counter++;
+		if (activeNeurons->emitPher) funcTable.push_back(&emitPheromone_neuronfunc); index_counter++;
 		neuronClasses.push_back(index_counter); // { 0, numSensors, numInternals, NUM_NEURONS }
 	}
 
@@ -197,7 +198,7 @@ namespace bs {
 			}
 		}
 
-		// empirical norming factor to get similar results between 0 and 1 for all search radii
+		// heuristic norming factor to get similar results between 0 and 1 for all search radii
 		float norming_factor = 1.9 * (w->searchRadius.get(p) - 0.5);
 
 		float out = (cache / norming_factor) / 2 + 0.5; // centered around 0.5
@@ -244,6 +245,33 @@ namespace bs {
 		return VOID;
 	}
 
+	float emitPheromone_neuronfunc(World* w, Entity p) {
+
+		// increase the pheromone levels around the pixie, decaying quadratically with distance
+		int searchR = static_cast<int>(std::ceil(w->searchRadius.get(p)));
+		Position pos = w->Pos.get(p);
+
+		for (int r = pos.yPos - searchR; r < pos.yPos + searchR; r++) {
+			for (int c = pos.xPos - searchR; c < pos.xPos + searchR; c++) {
+
+				if (w->isInBounds(r, c)) {
+					int dy = r - pos.yPos;
+					int dx = c - pos.xPos;
+					if (isInSearchRadius(dx, dy, w, p)) {
+
+						int dst = std::sqrt(dy * dy + dx * dx)+1;
+
+						//float value_f = 255.0f / (2.0f * quad_dst); quadratic decay (very fast)
+						float value_f = 128.0f * std::exp((-2.0f * dst) / (searchR * searchR)); // gaussian-similar decay curve
+						uint8_t value = static_cast<uint8_t>(value_f);
+						w->setPheromoneCell(r, c, value);
+					}
+				}
+			}
+		}
+
+		return VOID;
+	}
 
 	//future note: OnOff-neuron doesn't need a genome-wide variable "isOn", it can just return the last output again and again.
 	//if the state should be switched, setOnOff can directly change lastOutputs to switch the variable

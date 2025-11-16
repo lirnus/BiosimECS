@@ -129,6 +129,7 @@ namespace bs {
 		bool moveE;
 		bool moveN;
 		bool moveS;
+		bool emitPher;
 	};
 
 	// analytics

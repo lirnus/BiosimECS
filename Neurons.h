@@ -32,6 +32,8 @@ namespace bs {
 
 	float moveS_neuronfunc(World* w, Entity p);
 
+	float emitPheromone_neuronfunc(World* w, Entity p);
+
 	//void _neuronfunc(World* w, Entity p);
 
 
@@ -41,5 +43,5 @@ namespace bs {
 	// lookup-Table for Neuron functions
 	using NeuronFunc = float(*)(World* w, Entity e);
 	extern std::vector<NeuronFunc> funcTable;
-	void initFuncTable();
+	void initNeuronFuncTable();
 }

@@ -70,7 +70,9 @@ namespace bs {
 				for (int c = xPos - searchR; c < xPos + searchR; c++) {
 
 					if (w->isInBounds(r, c)) {
-						if (isInSearchRadius(c, r, w, p)) {
+						int dy = r - pos.yPos;
+						int dx = c - pos.xPos;
+						if (isInSearchRadius(dx, dy, w, p)) {
 
 							Entity neighbour = w->getGridCell(r, c);
 							if (neighbour != EMPTY) {

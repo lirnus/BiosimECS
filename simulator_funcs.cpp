@@ -47,7 +47,7 @@ namespace bs {
 			
 	}
 	
-	void inheritPixie(World* newW, const Genome oldGenome) {
+	void inheritPixie(World* newW, const Genome& oldGenome) {
 		// create a new Pixie entity
 		Entity newPixie = newW->pixie_em.create();
 
@@ -57,7 +57,7 @@ namespace bs {
 		// inherit the genome
 		newW->PixieGenomes.add(newPixie, inheritGenome(newW, newPixie, oldGenome));
 	}
-	void inheritPixie(World* newW, const startingGenome strt_gnm) {
+	void inheritPixie(World* newW, const startingGenome& strt_gnm) {
 		// create a new Pixie entity
 		Entity newPixie = newW->pixie_em.create();
 
@@ -91,13 +91,13 @@ namespace bs {
 
 	void eachSimStep(World* w, int gen, int age) {
 
-
 		// this can be multithreaded
 		const auto& entity_list = w->PixieGenomes.get_entities();
 #pragma omp parallel for //schedule(static) / schedule(dynamic)
 		for (const Entity& p : entity_list) {
 			execute_staticBrain(w, p);
 		}
+// end of parallel loop
 
 		for (const Entity& p : w->queueForMove) {
 			executeMove(w, p);
@@ -105,16 +105,21 @@ namespace bs {
 		w->queueForMove.clear();
 		w->pixie_neighbourhood.for_each([&](Entity e, Neighbourhood c) { c.up_to_date = false; });
 		 
-		//(pheromoneDecay)
+		// DEBUG
+		w->printPheromoneGrid();
+		//pheromoneDecay
+		w->pheromoneDecay();
 		
 		//render simstep if correct gen
 		if (shouldCreateGIF(gen)) {
 			writeGIFdata(gen, w);
 		}
 	}
+
 	void evaluateFitness(World* w) {
 		funcTableSelCrit[worldParams->selectionCriterium](w);
 	}
+
 	std::vector<Genome> select(World* w) {
 		std::vector<Genome> selected_genomes;
 		selected_genomes.reserve(worldParams->numberOfPixies);
@@ -123,8 +128,9 @@ namespace bs {
 		while (selected_genomes.size() < numPixies) { // this should stop when the size of numberOfPixies is reached
 			Entity rand_Entity = w->fitness.random_entity();
 			if (w->fitness.get(rand_Entity) > randomengine->getRandom01()) {
-				Genome pixie_gnm = w->genome.get(w->PixieGenomes.get(rand_Entity)); 
-				selected_genomes.push_back(pixie_gnm);
+				selected_genomes.push_back(
+					std::move(w->genome.get(w->PixieGenomes.get(rand_Entity))) // move is way faster than copy for large objects
+				);
 			}
 		}
 
@@ -156,7 +162,7 @@ namespace bs {
 
 			std::cout << "generation " << gen << "\n";
 			//create new World
-			World newWorld; // on stack // pixie and brain Template EntityManagers are automatically created with the World
+			World newWorld(worldParams); // on stack // pixie and brain Template EntityManagers are automatically created with the World
 			World* newWorld_ptr = &newWorld;
 			
 			// set environment
@@ -182,7 +188,7 @@ namespace bs {
 			//newWorld_ptr->printGrid();
 			for (int i = 0; i < numSimSteps; i++) {
 
-				//generationAge = i; // NOT THREAD SAFE
+				generationAge = i; 
 				eachSimStep(newWorld_ptr, gen, i);
 
 				//if (fitnessUpdates == "every") {
