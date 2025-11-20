@@ -494,6 +494,7 @@ namespace bs {
 	}
 
 	// population stats
+	bool shouldSavePopStats() { return analParams->calc_pop_stats; }
 	void writeSurvivalRates(World* w, int gen) {
 		// not the amount of pixies that reproduce, but the amount of pixies that have fitnes > 0 (and thus CAN reporoduce)
 		
@@ -572,6 +573,38 @@ namespace bs {
 		file.close();
 	}
 
+	// descendance
+	void writeDescendanceFile(World* w, int gen) {
+		// open a (new) file called "descendance.txt" in append mode
+		// add a new line with the data of every Pixie in w like this:
+		// parentID1:ownID1:colR:colG:colB, ... \n
+		// open textfile
+		std::ostringstream oss;
+		oss << bs::folder_dir << "/descendance.txt";
+		std::string fileName = oss.str();
+
+		std::ofstream file(fileName, std::ios::out | std::ios::app);
+		if (!file.is_open()) {
+			std::cout << "could not open descendance file :(\n";
+			return;
+		}
+
+		// write
+		file << gen;
+		w->parent.for_each([&](Entity ownID, Entity parentID) {
+			Color c = w->genome.get(w->PixieGenomes.get(ownID)).col;
+			file << ',' << parentID << ':' << ownID << ':'
+				<< static_cast<int>(c.r) << ':' 
+				<< static_cast<int>(c.g) << ':' 
+				<< static_cast<int>(c.b);
+		});
+		
+		file << '\n';
+
+		// close
+		file.close();
+	}
+	bool shouldSaveDesc() { return analParams->save_descendance; }
 
 	// wrapper functions
 	void writePopulationStats(World* w, int gen) {// write stats to textfile

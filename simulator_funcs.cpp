@@ -6,12 +6,15 @@
 #include <array>
 #include <fstream>
 #include <sstream>
+#include <utility>
 
 #include <omp.h> // Multithread
 
 namespace bs {
 
 	void initializePixie(World* w, Entity& newPixie) {
+		// initialize every component that a Pixie owns except its genome
+
 		int randX;
 		int randY;
 		while (true) {
@@ -33,6 +36,8 @@ namespace bs {
 		w->searchRadius.add(newPixie, pixParams->defaultSearchRadius);
 
 		w->pixie_neighbourhood.add(newPixie, Neighbourhood{});
+
+		w->energy.add(newPixie, 0.0);
 	}
 
 	void spawnPixie(World* w) {
@@ -44,10 +49,12 @@ namespace bs {
 
 		// create a new genome
 		w->PixieGenomes.add(newPixie, createGenome(w, newPixie));
-			
+
+		// assign parent ID
+		w->parent.add(newPixie, INVALID);			
 	}
 	
-	void inheritPixie(World* newW, const Genome& oldGenome) {
+	void inheritPixie(World* newW, const Genome& oldGenome, const Entity& parent) {
 		// create a new Pixie entity
 		Entity newPixie = newW->pixie_em.create();
 
@@ -56,6 +63,9 @@ namespace bs {
 
 		// inherit the genome
 		newW->PixieGenomes.add(newPixie, inheritGenome(newW, newPixie, oldGenome));
+
+		// assign parent ID
+		newW->parent.add(newPixie, parent);
 	}
 	void inheritPixie(World* newW, const startingGenome& strt_gnm) {
 		// create a new Pixie entity
@@ -66,6 +76,9 @@ namespace bs {
 
 		// inherit the genome
 		newW->PixieGenomes.add(newPixie, inheritGenome_fromDNA(newW, newPixie, strt_gnm));
+
+		// assign parent ID
+		newW->parent.add(newPixie, INVALID);
 	}
 
 	void newGeneration(World* newW) {
@@ -73,10 +86,17 @@ namespace bs {
 			spawnPixie(newW);
 		}
 	}
-	void newGeneration(World* newW, const std::vector<Genome>& nextMetagenome) {
+	void newGeneration(World* newW, const std::vector<selectedGenome>& nextMetagenome) {
+
 		// for each genome in nextMetagenome, spawn a new pixie
-		for (int i = 0; i < worldParams->numberOfPixies; i++) {
-			inheritPixie(newW, nextMetagenome.at(i)); // analogous to spawnPixie; but with predefined Genomes
+		size_t numPixies = worldParams->numberOfPixies;
+
+		//for (int i = 0; i < numPixies; i++) {
+		//	const selectedGenome& gnm_parent = nextMetagenome.at(i);
+		//	inheritPixie(newW, gnm_parent.genome, gnm_parent.parentID); // analogous to spawnPixie; but with predefined Genomes
+		//}
+		for (const auto& gnm_parent : nextMetagenome) {
+			inheritPixie(newW, gnm_parent.genome, gnm_parent.parentID);
 		}
 
 	}
@@ -106,7 +126,8 @@ namespace bs {
 		w->pixie_neighbourhood.for_each([&](Entity e, Neighbourhood c) { c.up_to_date = false; });
 		 
 		// DEBUG
-		w->printPheromoneGrid();
+		//w->printPheromoneGrid();
+		
 		//pheromoneDecay
 		w->pheromoneDecay();
 		
@@ -120,16 +141,17 @@ namespace bs {
 		funcTableSelCrit[worldParams->selectionCriterium](w);
 	}
 
-	std::vector<Genome> select(World* w) {
-		std::vector<Genome> selected_genomes;
+	std::vector<selectedGenome> select(World* w) {
+		std::vector<selectedGenome> selected_genomes;
 		selected_genomes.reserve(worldParams->numberOfPixies);
 
 		size_t numPixies = numPixies = worldParams->numberOfPixies;
 		while (selected_genomes.size() < numPixies) { // this should stop when the size of numberOfPixies is reached
 			Entity rand_Entity = w->fitness.random_entity();
 			if (w->fitness.get(rand_Entity) > randomengine->getRandom01()) {
-				selected_genomes.push_back(
-					std::move(w->genome.get(w->PixieGenomes.get(rand_Entity))) // move is way faster than copy for large objects
+				selected_genomes.push_back({
+						w->genome.get(w->PixieGenomes.get(rand_Entity)), //this copies the whole genome, but is necessary to stay in scope
+						rand_Entity }
 				);
 			}
 		}
@@ -150,9 +172,8 @@ namespace bs {
 			std::cerr << "too many pixies for the grid!";
 		}
 
-		// Container for genomes for the next generation:
-		//ComponentStorage<Genome> nextMetagenome;
-		std::vector<Genome> nextMetagenome; 
+		// Container for genomes & parent Entities for the next generation:
+		std::vector<selectedGenome> nextMetagenome; 
 		nextMetagenome.reserve(worldParams->numberOfPixies);
 
 
@@ -172,6 +193,7 @@ namespace bs {
 			if (gen == 1) {
 				if (simParams->startingPopulation) {
 					//readMetagenome(newWorld_ptr, startingPop_filepath)
+					newGeneration_fromTextfile(newWorld_ptr);
 				}
 				else {
 					// spawn Pixies with new Genomes
@@ -182,7 +204,7 @@ namespace bs {
 				// spawn new Pixies but inherit Genomes
 				newGeneration(newWorld_ptr, nextMetagenome);
 			}
-			nextMetagenome.clear();
+			//nextMetagenome.clear(); unnecessary?
 			
 			// simulate simSteps
 			//newWorld_ptr->printGrid();
@@ -206,7 +228,10 @@ namespace bs {
 			if (shouldSaveMetagenome(gen)) saveMetagenome(newWorld_ptr, gen);
 
 			// if needed, save populations stats
-			if (analParams->calc_pop_stats) writePopulationStats(newWorld_ptr, gen);
+			if (shouldSavePopStats()) writePopulationStats(newWorld_ptr, gen);
+			
+			// if needed, save the descendance of this generation
+			if (shouldSaveDesc()) writeDescendanceFile(newWorld_ptr, gen);
 			
 			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
 			nextMetagenome = select(newWorld_ptr);

@@ -30,11 +30,13 @@ namespace bs {
         // components for pixies
         ComponentStorage<Position> Pos; // its position (y/x)
         ComponentStorage<Entity> PixieGenomes; // a reference to its genome entity
+        ComponentStorage<Entity> parent; // a component tracking its predecessor from the previous generation
         ComponentStorage<float> facing; // its facing direction
         ComponentStorage<MoveUrge> move_urge; // values that indicate in which direction the pixie wants to move
         ComponentStorage<BrainState> brainstate; // the in- and outputs for its little brain
         ComponentStorage<float> fitness; // its current fitness value
         ComponentStorage<float> searchRadius; // the radius it uses to scan its environment
+        ComponentStorage<float> energy; // a resource that a pixie can amount
 
         ComponentStorage<Neighbourhood> pixie_neighbourhood; // a cache structure to save a current snapshot of its neighbourhood
 

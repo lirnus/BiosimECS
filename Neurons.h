@@ -23,6 +23,10 @@ namespace bs {
 	float popDensityFwd_neuronfunc(World* w, Entity p);
 
 	float age_neuronfunc(World* w, Entity p);
+
+	float onOff_neuronfunc(World* w, Entity p);
+
+
 	//a													actions return floats, but that can be any arbitray number 
 	float moveW_neuronfunc(World* w, Entity p);
 

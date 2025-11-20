@@ -33,7 +33,12 @@ namespace bs {
 	bool shouldSaveMetagenome(int gen);
 	const std::vector<startingGenome> readMetagenome();
 
+	// save Descendance
+	bool shouldSaveDesc();
+	void writeDescendanceFile(World* w, int gen);
+
 	// population stats 
+	bool shouldSavePopStats();
 	void writeSurvivalRates(World* w, int gen);
 	void writeDiversityIndex(World* w, int gen);
 	void writeMeanFitness(World* w, int gen);

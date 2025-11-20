@@ -117,6 +117,7 @@ namespace bs {
 	// Neurons
 
 	struct ActiveNeurons {
+		bool allNeurons;
 		//s
 		bool xPos;
 		bool yPos;
@@ -142,6 +143,7 @@ namespace bs {
 
 	struct AnalyticsParams {
 		bool calc_pop_stats{ true };
+		bool save_descendance{ true };
 		std::string save_metagenome{ "first&last" };
 		int saveMetagenomeEvery{ 1 };
 		std::vector<int> saveMetagenomeFor{ 2, 3, 5, 10, 20, 50, 100, 200, 300, 400, 500 };

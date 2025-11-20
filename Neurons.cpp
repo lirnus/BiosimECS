@@ -33,13 +33,14 @@ namespace bs {
 	void initNeuronFuncTable() {// fill up funcTable and neuronClasses
 		
 		int index_counter{ 0 };
+		bool allN = activeNeurons->allNeurons;
 
 		//s
 		neuronClasses.push_back(index_counter); // { 0 }
-		if (activeNeurons->xPos) funcTable.push_back(&xPos_neuronfunc); index_counter++;
-		if (activeNeurons->yPos) funcTable.push_back(&yPos_neuronfunc); index_counter++;
-		if (activeNeurons->popDensityFwd) funcTable.push_back(&popDensityFwd_neuronfunc); index_counter++;
-		if (activeNeurons->age) funcTable.push_back(&age_neuronfunc); index_counter++;
+		if (allN || activeNeurons->xPos)			funcTable.push_back(&xPos_neuronfunc); index_counter++;
+		if (allN || activeNeurons->yPos)			funcTable.push_back(&yPos_neuronfunc); index_counter++;
+		if (allN || activeNeurons->popDensityFwd)	funcTable.push_back(&popDensityFwd_neuronfunc); index_counter++;
+		if (allN || activeNeurons->age)				funcTable.push_back(&age_neuronfunc); index_counter++;
 		neuronClasses.push_back(index_counter); // { 0, numSensors }
 		//i
 		for (int i = 0; i < activeNeurons->numInternals; i++) {
@@ -48,11 +49,11 @@ namespace bs {
 		}
 		neuronClasses.push_back(index_counter); // { 0, numSensors, numInternals }
 		//a
-		if (activeNeurons->moveW) funcTable.push_back(&moveW_neuronfunc); index_counter++;
-		if (activeNeurons->moveE) funcTable.push_back(&moveE_neuronfunc); index_counter++;
-		if (activeNeurons->moveN) funcTable.push_back(&moveN_neuronfunc); index_counter++;
-		if (activeNeurons->moveS) funcTable.push_back(&moveS_neuronfunc); index_counter++;
-		if (activeNeurons->emitPher) funcTable.push_back(&emitPheromone_neuronfunc); index_counter++;
+		if (allN || activeNeurons->moveW)			funcTable.push_back(&moveW_neuronfunc); index_counter++;
+		if (allN || activeNeurons->moveE)			funcTable.push_back(&moveE_neuronfunc); index_counter++;
+		if (allN || activeNeurons->moveN)			funcTable.push_back(&moveN_neuronfunc); index_counter++;
+		if (allN || activeNeurons->moveS)			funcTable.push_back(&moveS_neuronfunc); index_counter++;
+		if (allN || activeNeurons->emitPher)		funcTable.push_back(&emitPheromone_neuronfunc); index_counter++;
 		neuronClasses.push_back(index_counter); // { 0, numSensors, numInternals, NUM_NEURONS }
 	}
 
@@ -209,6 +210,10 @@ namespace bs {
 
 	float age_neuronfunc(World* w, Entity p) {
 		return static_cast<float>(generationAge) / worldParams->numberOfSimSteps;
+	}
+
+	float onOff_neuronfunc(World* w, Entity p) {
+		return 1.0;//w->brainstate.get(p).lastStepOutputs
 	}
 
 	// ACTION //////////////////////////////////////

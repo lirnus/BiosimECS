@@ -79,8 +79,9 @@ namespace bs {
 				else if (key == "defaultSearchRadius") pixParams->defaultSearchRadius = std::stof(value);
 			}
 			else if (section == "[neurons]") {
+				if (key == "allNeurons") activeNeurons->allNeurons = (value == "true" || value == "True" || value == "T");
 				//s
-				if (key == "xPos") activeNeurons->xPos = (value == "true" || value == "True" || value == "T");
+				else if (key == "xPos") activeNeurons->xPos = (value == "true" || value == "True" || value == "T");
 				else if (key == "yPos") activeNeurons->yPos = (value == "true" || value == "True" || value == "T");
 				else if (key == "popDensityFwd") activeNeurons->popDensityFwd = (value == "true" || value == "True" || value == "T");
 				else if (key == "age") activeNeurons->age = (value == "true" || value == "True" || value == "T");
@@ -95,6 +96,7 @@ namespace bs {
 			}
 			else if (section == "[analytics]") {
 				if (key == "calc_pop_stats") analParams->calc_pop_stats = (value == "true" || value == "True" || value == "T");
+				if (key == "save_descendance") analParams->save_descendance = (value == "true" || value == "True" || value == "T");
 				else if (key == "save_metagenome") analParams->save_metagenome = value;
 				else if (key == "saveMetagenomeEvery") analParams->saveMetagenomeEvery = std::stoi(value);
 				else if (key == "saveMetagenomeFor") {
