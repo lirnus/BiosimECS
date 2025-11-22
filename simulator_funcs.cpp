@@ -86,17 +86,18 @@ namespace bs {
 			spawnPixie(newW);
 		}
 	}
-	void newGeneration(World* newW, const std::vector<selectedGenome>& nextMetagenome) {
+	void newGeneration(World* newW, const ComponentStorage<Genome>& precMetagenome, const std::vector<selectedGenome>& selectedGenomes) {
 
 		// for each genome in nextMetagenome, spawn a new pixie
-		size_t numPixies = worldParams->numberOfPixies;
+		//size_t numPixies = worldParams->numberOfPixies;
 
-		//for (int i = 0; i < numPixies; i++) {
-		//	const selectedGenome& gnm_parent = nextMetagenome.at(i);
-		//	inheritPixie(newW, gnm_parent.genome, gnm_parent.parentID); // analogous to spawnPixie; but with predefined Genomes
-		//}
-		for (const auto& gnm_parent : nextMetagenome) {
-			inheritPixie(newW, gnm_parent.genome, gnm_parent.parentID);
+		for (int i = 0; i < selectedGenomes.size(); i++) {
+			// for each element in selectedGenomes, get the corresponding Genome object out of the ComponentStorage
+			const selectedGenome& parent = selectedGenomes.at(i);
+			const Genome& parent_gnm = precMetagenome.get(parent.genomeID);
+
+			// spawn a new Pixie!
+			inheritPixie(newW, parent_gnm, parent.parentID); 
 		}
 
 	}
@@ -147,12 +148,13 @@ namespace bs {
 
 		size_t numPixies = numPixies = worldParams->numberOfPixies;
 		while (selected_genomes.size() < numPixies) { // this should stop when the size of numberOfPixies is reached
+
 			Entity rand_Entity = w->fitness.random_entity();
 			if (w->fitness.get(rand_Entity) > randomengine->getRandom01()) {
-				selected_genomes.push_back({
-						w->genome.get(w->PixieGenomes.get(rand_Entity)), //this copies the whole genome, but is necessary to stay in scope
-						rand_Entity }
-				);
+				
+				selected_genomes.push_back(
+					{ w->PixieGenomes.get(rand_Entity), rand_Entity }
+				); // save the Entity ID of that Pixie's genome
 			}
 		}
 
@@ -172,18 +174,17 @@ namespace bs {
 			std::cerr << "too many pixies for the grid!";
 		}
 
-		// Container for genomes & parent Entities for the next generation:
-		std::vector<selectedGenome> nextMetagenome; 
-		nextMetagenome.reserve(worldParams->numberOfPixies);
+		// declare containers for genomes & parent genome entities for following generations:
+		ComponentStorage<Genome> preceedingMetagenome; // copy of the "genome" copm storage of the preceeding generation
+		std::vector<selectedGenome> selectedGenomes; // struct holding the Entity ID of the parent genome and of the parent itself
 
 
-		//std::unique_ptr<World> oldWorld = nullptr; //empty world adress // we need either a dummy world or a placeholder adress
 		// for each generation:
 		for (int gen = 1; gen <= numGens; gen++) {
 
 			std::cout << "generation " << gen << "\n";
 			//create new World
-			World newWorld(worldParams); // on stack // pixie and brain Template EntityManagers are automatically created with the World
+			World newWorld(worldParams); // on stack 
 			World* newWorld_ptr = &newWorld;
 			
 			// set environment
@@ -196,18 +197,17 @@ namespace bs {
 					newGeneration_fromTextfile(newWorld_ptr);
 				}
 				else {
-					// spawn Pixies with new Genomes
+					// spawn Pixies with newly generated genomes
 					newGeneration(newWorld_ptr);
 				}
-			}// else if succeding world:
-			else {
-				// spawn new Pixies but inherit Genomes
-				newGeneration(newWorld_ptr, nextMetagenome);
 			}
-			//nextMetagenome.clear(); unnecessary?
+			// else if succeding world:
+			else {
+				// spawn new Pixies but inherit genomes
+				newGeneration(newWorld_ptr, preceedingMetagenome, selectedGenomes);
+			}
 			
 			// simulate simSteps
-			//newWorld_ptr->printGrid();
 			for (int i = 0; i < numSimSteps; i++) {
 
 				generationAge = i; 
@@ -232,10 +232,8 @@ namespace bs {
 			
 			// if needed, save the descendance of this generation
 			if (shouldSaveDesc()) writeDescendanceFile(newWorld_ptr, gen);
-			
-			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
-			nextMetagenome = select(newWorld_ptr);
-			
+
+			// check if there are any pixies left to reproduce
 			int fit_pixies = 0;
 			newWorld_ptr->fitness.for_each([&](Entity e, float c) {if (c > 0) { fit_pixies++; }; });
 			if (fit_pixies == 0) {
@@ -243,6 +241,13 @@ namespace bs {
 				break;
 			}
 			
+			// select pixies to be reproduced by fitness and fill numPixies worth of Genomes into the nextMetagenome Object
+			preceedingMetagenome = std::move(newWorld_ptr->genome);
+			selectedGenomes = select(newWorld_ptr);
+
+			// go to the next generation!
+
+
 		} // end for gen
 
 	}// end simulateGenerations

@@ -9,8 +9,8 @@
 
 namespace bs {
 
-	struct selectedGenome {// a POD struct to contain different variables when inheriting Pixies
-		Genome genome;
+	struct selectedGenome {// a POD struct to contain different short-lived variables when inheriting Pixies
+		Entity genomeID;
 		Entity parentID;
 	};
 
@@ -22,7 +22,7 @@ namespace bs {
 	
 
 	void newGeneration(World* newW); // generate genomes from scratch
-	void newGeneration(World* newW, const std::vector<std::pair<Genome, Entity>>& genome); // for succeeding generenations
+	void newGeneration(World* newW, const ComponentStorage<Genome>& prevMetagenome, const std::vector<Entity>& selectedGenomes); // for succeeding generenations
 	void newGeneration_fromTextfile(World* newW);
 
 	
