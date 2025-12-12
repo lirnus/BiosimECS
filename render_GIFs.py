@@ -5,7 +5,7 @@ import gc
 import os
 import math
 
-from pyparsing import Each
+#from pyparsing import Each
 
 # set directory
 with open("folderdir.txt") as file:

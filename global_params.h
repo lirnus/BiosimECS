@@ -56,16 +56,8 @@ namespace bs {
 											// connection cases for arbitrary genome sizes, but within probable reason, it should never cause problems.
 	static constexpr size_t MAX_GENES = 1024; // max number of total genes
 	static constexpr size_t MAX_NEURONS = _UI8_MAX; // 0..255
-	/*static constexpr int gridsizeY = 100;
-	static constexpr int gridsizeX = 100;
-	static constexpr int numberOfGenes = 10;
-	static constexpr int numberOfPixies = 500;
-	static constexpr int numberOfGenerations = 200;
-	static constexpr int numberOfSimSteps = 70;
-	static constexpr uint8_t selectionCriterium = GOLEFT_GRADIENT; // key for SelCrit-lookup table; see enum SelCrit
-	static constexpr uint8_t Barriers_Key = NO_BARRIERS; // see environment.h enum Barriers
-	static constexpr uint8_t Interactives_Key = NO_INTERACTIVES; // see environment.h enum Interactives; controls food placement etc.*/
-
+	static constexpr int MAX_PARENTS = 4;
+	
 	struct WorldParams {
 		int gridSizeY{ 100 };
 		int gridSizeX{ 100 };
@@ -100,6 +92,7 @@ namespace bs {
 	struct PopulationParams {
 		bool blockedByOtherPixies{ true };
 		int pixies_per_genome{ 1 }; // this value is currently no being used!
+		int numberOfParents{ 1 };
 	};
 
 	// pixie parameters

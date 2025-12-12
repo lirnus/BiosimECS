@@ -1,6 +1,6 @@
-from cProfile import label
+#from cProfile import label
 import matplotlib.pyplot as plt
-import numpy as np
+#import numpy as np
 from pathlib import Path
 import os
 from collections import defaultdict
@@ -12,7 +12,8 @@ with open("folderdir.txt") as file:
     os.chdir(folder_dir)
     directory = Path(folder_dir)
 
-## FUNCTIONS ##
+
+############ FUNCTIONS ######################
 
 # plot Survival, Diversity, mean Fitness
 def plotSDF():
@@ -28,23 +29,26 @@ def plotSDF():
     diversity_data = []
     diversity_gens = []
 
-    with open(survival_path) as file:
-        for line in file:
-            elems = line.strip("\n").split(",")
-            survival_gens.append(int(elems[0]))
-            survival_data.append(float(elems[1]))
+    if os.path.exists(survival_path):
+        with open(survival_path) as file:
+            for line in file:
+                elems = line.strip("\n").split(",")
+                survival_gens.append(int(elems[0]))
+                survival_data.append(float(elems[1]))
 
-    with open(fitness_path) as file:
-        for line in file:
-            elems = line.strip("\n").split(",")
-            fitness_gens.append(int(elems[0]))
-            fitness_data.append(float(elems[1]))
+    if os.path.exists(fitness_path):
+        with open(fitness_path) as file:
+            for line in file:
+                elems = line.strip("\n").split(",")
+                fitness_gens.append(int(elems[0]))
+                fitness_data.append(float(elems[1]))
 
-    with open(diversity_path) as file:
-        for line in file:
-            elems = line.strip("\n").split(",")
-            diversity_gens.append(int(elems[0]))
-            diversity_data.append(float(elems[1]))
+    if os.path.exists(diversity_path):
+        with open(diversity_path) as file:
+            for line in file:
+                elems = line.strip("\n").split(",")
+                diversity_gens.append(int(elems[0]))
+                diversity_data.append(float(elems[1]))
     
     #plot it
     fig, ax = plt.subplots()
@@ -179,9 +183,9 @@ def plot_GeneFrqs(genefrqs_dict):
     ax.set_xlabel('Generation')
 
     save_dir = folder_dir + "/gene_frequencies.png"
-    plt.savefig(save_dir)
+    fig.savefig(save_dir)
     save_dir2 = folder_dir + "/gene_frequencies.pdf"
-    plt.savefig(save_dir2)
+    fig.savefig(save_dir2)
 
 # plot Lineages (aka Mullerplot)
 def mullerplot(lineages_dict):

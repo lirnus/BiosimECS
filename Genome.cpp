@@ -78,7 +78,7 @@ namespace bs {
 		if (clone != INVALID) { /*std::cout << "pixie " << p << " inherited a IDENTICAL genome\n";*/ return clone; }
 
 		// else create a new Entity
-		if (neuron_mut) {
+		if (neuron_mut || popParams->numberOfParents > 1) { // always necessary if recombination has happened
 			// new topology
 			//std::cout << "pixie " << p << " inherited a MISSENSE mutated genome\n";
 			return inheritGenome_Missense(w, p, possibly_mutated_DNA, old_gnm);

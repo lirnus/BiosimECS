@@ -54,7 +54,7 @@ namespace bs {
 			if (section == "[world parameters]") {
 				if (key == "gridsizeX") worldParams->gridSizeX = std::stoi(value);
 				else if (key == "gridsizeY") worldParams->gridSizeY = std::stoi(value);
-				else if (key == "numberOfGenes") worldParams->numberOfGenes = std::stoi(value);
+				else if (key == "numberOfGenes") worldParams->numberOfGenes = std::stoi(value) < MAX_GENES ? std::stoi(value) : MAX_GENES;
 				else if (key == "numberOfPixies") worldParams->numberOfPixies = std::stoi(value);
 				else if (key == "numberOfGenerations") worldParams->numberOfGenerations = std::stoi(value);
 				else if (key == "numberOfSimSteps") worldParams->numberOfSimSteps = std::stoi(value);
@@ -72,6 +72,7 @@ namespace bs {
 			else if (section == "[population parameters]") {
 				if (key == "blockedByOtherPixies") popParams->blockedByOtherPixies = (value == "true" || value == "True" || value == "T");
 				else if (key == "pixies_per_genome") popParams->pixies_per_genome = std::stoi(value);
+				else if (key == "numberOfParents") popParams->numberOfParents = std::clamp(std::stoi(value), 1, MAX_PARENTS);
 			}
 			else if (section == "[pixie parameters]") {
 				if (key == "mutationRate") pixParams->mutationRate = std::stof(value);
